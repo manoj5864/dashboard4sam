@@ -2,7 +2,9 @@
   "name": "Dashboard4SAM",
   "version": "0.0.0",
   "authors": [
-    "Christopher Janietz <christopher@janietz.eu"
+    "Christopher Janietz <christopher@janietz.eu>",
+    "Andreas Gerö <a.geroe@gmx.de>",
+    "Sayan Hazra <sayan.mnit@gmail.com>"
   ],
   "license": "MIT",
   "ignore": [
