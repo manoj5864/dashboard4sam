@@ -2,3 +2,5 @@
 bower_modules
 *.iml
 node_modules
+test/js
+build/
