@@ -15,6 +15,13 @@ module.exports = (grunt) ->
           {src: ['./build/tmp/compileBrowserify/dist.js'], dest: './test/js/dashboard4sam.js'}
         ]
 
+    watch:
+      source:
+        files: ['./src/**']
+        tasks: ['build-frontend-dev']
+        options:
+          spawn: false
+
     clean:
       babel: ['./build/tmp/compileBabel']
 
