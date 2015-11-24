@@ -5,9 +5,8 @@ import {Topbar} from './Topbar'
 import {Content} from './Content'
 
 let React = window.React
-let Parents = mixin(React.Component, TLoggable)
 
-export class Page extends Parents{
+export class Page extends mixin(React.Component, TLoggable) {
 
     constructor() {
         super()

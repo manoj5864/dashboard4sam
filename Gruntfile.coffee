@@ -7,6 +7,10 @@ module.exports = (grunt) ->
           flatten: true
         files: [
           {src: ['./bower_components/d3/d3.js'], dest: './test/js/d3.js'}
+          {src: ['./bower_components/bootstrap/dist/js/bootstrap.js'], dest: './test/js/bootstrap.js'}
+          {src: ['./bower_components/jquery/dist/jquery.js'], dest: './test/js/jquery.js'}
+          {src: ['./bower_components/react/react.js'], dest: './test/js/react.js'}
+          {src: ['./bower_components/react/react-dom.js'], dest: './test/js/react-dom.js'}
         ]
       lib_prod:
         options:
@@ -39,6 +43,13 @@ module.exports = (grunt) ->
           # Main Style
           {src : ['./src/style/main.css'], dest: './out/style/main.css'}
         ]
+      css_dev:
+        options:
+          flatten: true
+        files: [
+          {src: ['./bower_components/bootstrap/dist/css/bootstrap.css'], dest: './test/style/bootstrap.css'}
+          {src : ['./src/style/main.css'], dest: './test/style/main.css'}
+        ]
 
     watch:
       source:
@@ -70,7 +81,7 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks 'grunt-babel'
   grunt.loadNpmTasks 'grunt-browserify'
-  grunt.registerTask 'init-dev', ['copy:lib_dev']
+  grunt.registerTask 'init-dev', ['copy:lib_dev', 'copy:css_dev']
   grunt.registerTask 'build-dev', ['babel:code', 'browserify:code', 'copy:sam_dev']
   grunt.registerTask 'build-prod', ['babel:code', 'browserify:code', 'copy:css_prod', 'copy:lib_prod', 'copy:sam_prod']
 

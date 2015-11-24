@@ -14,9 +14,13 @@ export class Topbar extends Parents {
         return (
             <div className="topbar">
                 <div className="topbar-left">
+                    <div className="text-center">
+                        <a><span>Dashboard4SAM</span></a>
+                    </div>
                 </div>
 
             </div>
+
         )
     }
 }
