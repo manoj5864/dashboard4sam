@@ -4,5 +4,3 @@ bower_modules
 node_modules
 test/js
 build/
-out/js
-out/style
