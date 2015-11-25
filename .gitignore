@@ -1,5 +1,5 @@
 .idea/
-bower_modules
+bower_components
 *.iml
 node_modules
 test/js
