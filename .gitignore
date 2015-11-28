@@ -3,4 +3,5 @@ bower_components
 *.iml
 node_modules
 test/js
+test/style
 build/
