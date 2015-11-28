@@ -1,8 +1,7 @@
 import {mixin} from './util/mixin'
 import {TLoggable} from './util/logging/TLoggable'
 
-let Parents = mixin(null, TLoggable)
-export class Application extends Parents{
+export class Application extends mixin(null, TLoggable) {
     static start() {
 
     }
