@@ -42,13 +42,18 @@ module.exports = (grunt) ->
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.min.css'], dest: './out/style/bootstrap.css'}
           # Main Style
           {src : ['./src/style/main.css'], dest: './out/style/main.css'}
+          # Images
+          {expand: true, flatten: true, src: ['./resources/images/**'], dest: './out/images/'}
         ]
       css_dev:
         options:
           flatten: true
         files: [
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.css'], dest: './test/style/bootstrap.css'}
+          # Main Style
           {src : ['./src/style/main.css'], dest: './test/style/main.css'}
+          # Images
+          {expand: true, flatten: true, src: ['./resources/images/**'], dest: './test/images/'}
         ]
 
     watch:
