@@ -58,7 +58,6 @@ class SocioCortexWorkspace {
                       includeMetaAttributes = true,
                       includeContent = false,
                       includeTasks = false) {
-        debugger
         let attributes =
             (typeof(includeAttributes) === 'boolean' && includeAttributes)
             ? '*' : (typeof(includeAttributes) === 'string') ? includeAttributes : null
