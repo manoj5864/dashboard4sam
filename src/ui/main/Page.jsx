@@ -15,8 +15,8 @@ export class Page extends mixin(React.Component, TLoggable) {
     render() {
         return (
             <div id="wrapper">
-                <Topbar />,
-                <Menu/>,
+                <Topbar />
+                <Menu/>
                 <Content />
             </div>
         )

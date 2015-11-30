@@ -120,7 +120,6 @@ export class TreeMap extends mixin(null, TLoggable) {
     }
 
     _display(el) {
-        el.
     }
 
     constructor(svgElement, width, height) {

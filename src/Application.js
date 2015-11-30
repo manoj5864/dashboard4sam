@@ -62,16 +62,17 @@ class SocioCortexManager extends mixin(null, TLoggable) {
     init() {
         this._cortexClient = new SocioCortexApi(
             'christopher@janietz.eu',
-            'XXX',
+            '105u60id1kf1w',
             'http://vmmatthes21.informatik.tu-muenchen.de/api/v1'
         )
         this._workspace = cortexClient.getWorkspace('16eh5j1cwrrny')
     }
 }
 
-class Application extends mixin(null, TLoggable) {
+
+export class ApplicationContext {
+
     constructor() {
-        super()
         this._managerRegistry = {}
     }
 
@@ -84,7 +85,7 @@ class Application extends mixin(null, TLoggable) {
     }
 
     start() {
-        this.info("Starting up application...")
+        //this.info("Starting up application...")
         // Initialize page
         ReactDOM.render(<Page />, $('body')[0])
 
@@ -94,6 +95,5 @@ class Application extends mixin(null, TLoggable) {
     }
 }
 
-let applicationInstance = new Application()
-
+let applicationInstance = new ApplicationContext()
 export {applicationInstance as app}
