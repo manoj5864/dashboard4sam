@@ -73,4 +73,9 @@ d3.json('../src/test/data.json', (err, res) =>  {
 });
 */
 import {app} from './Application'
+import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 app.start()
+
+
+let queryBuilder = new QueryBuilder()
+app.pageManager.currentPage = queryBuilder

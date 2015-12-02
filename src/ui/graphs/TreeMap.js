@@ -3,16 +3,17 @@ import {TLoggable} from '../../util/logging/TLoggable'
 
 let d3 = window.d3
 
-buildRect = function (rect) {
+let buildRect = function (rect) {
     rect.attr("x", function(d) { return x(d.x); })
         .attr("y", function(d) { return y(d.y); })
         .attr("width", function(d) { return x(d.x + d.dx) - x(d.x); })
         .attr("height", function(d) { return y(d.y + d.dy) - y(d.y); });
 }
 
-buildText = function(text) {
+let buildText = function(text) {
     text.attr("x", function(d) { return x(d.x) + 6; })
         .attr("y", function(d) { return y(d.y) + 6; });
+
 }
 
 export class TreeNode extends mixin(null, TLoggable) {

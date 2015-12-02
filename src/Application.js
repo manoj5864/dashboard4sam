@@ -22,21 +22,21 @@ class PageManager extends mixin(null, TLoggable) {
         window.location.hash = value
     }
 
-    handleHashChange(hash) {
+    _handleHashChange(hash) {
         this.info(`Dealing with hash change ${hash}`)
     }
 
     init() {
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
-                this.handleHashChange(this.currentHash)
+                this._handleHashChange(this.currentHash)
             })
         })
     }
 
     constructor() {
         super()
-        init()
+        this.init()
     }
 
 }
@@ -44,7 +44,7 @@ class PageManager extends mixin(null, TLoggable) {
 class SocioCortexManager extends mixin(null, TLoggable) {
     constructor() {
         super()
-        init()
+        this.init()
     }
 
     get workspace() {
@@ -65,7 +65,7 @@ class SocioCortexManager extends mixin(null, TLoggable) {
             '105u60id1kf1w',
             'http://vmmatthes21.informatik.tu-muenchen.de/api/v1'
         )
-        this._workspace = cortexClient.getWorkspace('16eh5j1cwrrny')
+        this._workspace = this._cortexClient.getWorkspace('16eh5j1cwrrny')
     }
 }
 
