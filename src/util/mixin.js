@@ -4,13 +4,26 @@
  * @param mixins must be objects
  */
 export function mixin(Parent, ...mixins) {
-    let newParent = Parent || Object
-    class Mixed extends newParent {}
 
-    for (let mixin of mixins) {
-        for (let prop of Object.keys(mixin)) {
-            Mixed.prototype[prop] = mixin[prop];
-        }
+    class MixedSimple {}
+
+    class Mixed extends Parent {
+        constructor() { super() }
     }
-    return Mixed;
+
+    if (Parent) {
+        for (let mixin of mixins) {
+            for (let prop of Object.keys(mixin)) {
+                Mixed.prototype[prop] = mixin[prop];
+            }
+        }
+        return Mixed;
+    } else {
+        for (let mixin of mixins) {
+            for (let prop of Object.keys(mixin)) {
+                MixedSimple.prototype[prop] = mixin[prop];
+            }
+        }
+        return MixedSimple;
+    }
 };
