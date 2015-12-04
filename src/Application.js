@@ -22,11 +22,17 @@ class PageManager extends mixin(null, TLoggable) {
         window.location.hash = value
     }
 
+    switchPage(page) {
+        this._pageElement.contentSpot.currentPage = page
+    }
+
     _handleHashChange(hash) {
         this.info(`Dealing with hash change ${hash}`)
     }
 
     init() {
+        this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
+
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
                 this._handleHashChange(this.currentHash)
@@ -70,9 +76,10 @@ class SocioCortexManager extends mixin(null, TLoggable) {
 }
 
 
-export class ApplicationContext {
+export class ApplicationContext extends mixin(null, TLoggable) {
 
     constructor() {
+        super()
         this._managerRegistry = {}
     }
 
@@ -85,11 +92,9 @@ export class ApplicationContext {
     }
 
     start() {
-        //this.info("Starting up application...")
-        // Initialize page
-        ReactDOM.render(<Page />, $('body')[0])
-
         // Register manager
+        this.info('Starting application context...')
+
         this._managerRegistry.pageManager = new PageManager()
         this._managerRegistry.cortexManager = new SocioCortexManager()
     }

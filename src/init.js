@@ -78,4 +78,5 @@ app.start()
 
 
 let queryBuilder = new QueryBuilder()
-app.pageManager.currentPage = queryBuilder
+debugger;
+app.pageManager.switchPage(queryBuilder)

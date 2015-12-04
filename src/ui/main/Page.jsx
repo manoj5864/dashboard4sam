@@ -12,12 +12,20 @@ export class Page extends mixin(React.Component, TLoggable) {
         super()
     }
 
+    get contentSpot() {
+        return this._contentSpot
+    }
+
+    get menuSpot() {
+        return this._menuSpot
+    }
+
     render() {
         return (
             <div id="wrapper">
                 <Topbar />
-                <Menu/>
-                <Content />
+                <Menu ref={c => this._menuSpot = c}/>
+                <Content ref={c => this._contentSpot = c} />
             </div>
         )
     }
