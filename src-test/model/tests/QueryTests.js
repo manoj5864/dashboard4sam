@@ -34,4 +34,17 @@ describe('QueryLanguage', function() {
         expect(result.data.type[0]).to.have.all.keys('name')
 
     })
+
+    it('should retrieve entities with their class name', async () => {
+        let query = `
+            query EntitiesWithClassesQuery {
+                entity {
+                    class {
+                        name
+                    }
+                    name
+                }
+            }
+        `
+    })
 })

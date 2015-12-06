@@ -177,7 +177,7 @@ class SocioCortexAttributeDefinition {
     }
 }
 
-class SocioCortexEntityDetails {
+class SocioCortexEntityTypeDetails {
 
     constructor(json) {
         this._json = json
@@ -223,14 +223,14 @@ class SocioCortexEntitytype {
         return this._json.href
     }
 
-    async details() {
+    get details() {
         return this.get()
     }
 
     async get() {
         try {
             json = await this._cortexClient._makeRequest(this.href)
-            return new SocioCortexEntityDetails(json)
+            return new SocioCortexEntityTypeDetails(json)
         } catch (ex) {
         }
     }

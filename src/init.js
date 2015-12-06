@@ -76,7 +76,4 @@ import {app} from './Application'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 app.start()
 
-
-let queryBuilder = new QueryBuilder()
-debugger;
-app.pageManager.switchPage(queryBuilder)
+app.pageManager.switchPage(<QueryBuilder />)

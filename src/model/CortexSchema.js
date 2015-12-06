@@ -7,11 +7,39 @@ import {
 } from 'graphql';
 
 let schemaFunc = (cortexWorkspace) => {
-    let entityClass = new GraphQLObjectType({
-        name: 'EntityClass',
+
+    let entityClassReference = new GraphQLObjectType({
+        name: 'EntityClassReference',
+        fields:  {
+            name: {
+                type: GraphQLString
+            }
+        }
+    })
+
+    let entityAttribute = new GraphQLObjectType({
+        name: 'EntityClassAttribute',
         fields: {
             name: {
                 type: GraphQLString
+            }
+        }
+    })
+
+    let entityClass = new GraphQLObjectType({
+        name: 'EntityClass',
+        fields: {
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
+            referencedBy: {
+                type: new GraphQLList(entityClassReference)
+            },
+            referencesTo: {
+                type: new GraphQLList(entityClassReference)
             }
         }
     })
@@ -28,11 +56,12 @@ let schemaFunc = (cortexWorkspace) => {
                 type: GraphQLString
             },
             name: {
-                type: GraphQLString,
+                type: GraphQLString
             }
         }
     })
     let entityList = new GraphQLList(entity)
+
 
 
     let _entitySchema = new GraphQLSchema({
@@ -46,7 +75,13 @@ let schemaFunc = (cortexWorkspace) => {
 
                 type: {
                     type: entityClassList,
-                    resolve: () => cortexWorkspace.getEntityTypes()
+                    args: {
+                        id: {
+                            description: 'ID of the entity class',
+                            type: GraphQLString
+                        }
+                    },
+                    resolve: (root, {id}) => cortexWorkspace.getEntityTypes()
                 }
             }
         })

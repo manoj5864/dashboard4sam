@@ -3,6 +3,7 @@ import {TLoggable} from './util/logging/TLoggable'
 import {Page} from './ui/main/Page'
 import {SocioCortexApi} from './service/api/SocioCortexApi'
 import {graphql} from 'graphql'
+import {schema} from './model/CortexSchema'
 
 
 let $ = window.$
@@ -63,6 +64,7 @@ class SocioCortexManager extends mixin(null, TLoggable) {
 
     executeQuery(query) {
         this.debug(`Executing query: ${query}`)
+        return graphql(schema(this._workspace), query)
     }
 
     init() {

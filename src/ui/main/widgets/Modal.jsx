@@ -3,9 +3,12 @@ import {TLoggable} from '../../../util/logging/TLoggable'
 import {Button} from './Button'
 
 let React = window.React
+let ReactDOM = window.ReactDOM
 let $ = window.$
 
-class Modal extends mixin(React.Component, TLoggable) {
+const MODAL_MOUNTPOINT = '#modalMountpoint'
+
+export class Modal extends mixin(React.Component, TLoggable) {
     constructor(props) {
         super()
         this.state = {
@@ -13,13 +16,16 @@ class Modal extends mixin(React.Component, TLoggable) {
         }
     }
 
-    show(content) {
-        if (this.state.visible) { throw new Error('Modal Dialog is already visible')}
-
+    static show(content) {
+        ReactDOM.render(
+            <Modal>
+                {content}
+            </Modal>
+        , $(MODAL_MOUNTPOINT)[0])
     }
 
-    hide() {
-
+    static hide() {
+        React.unmountComponentAtNode($(MODAL_MOUNTPOINT)[0]);
     }
 
     _handleCloseClick() {
@@ -32,9 +38,11 @@ class Modal extends mixin(React.Component, TLoggable) {
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header"></div>
-                        <div className="modal-body"></div>
+                        <div className="modal-body">
+
+                        </div>
                         <div className="modal-footer">
-                            <Button onClick={$.proxy(this._handleCloseClick, this)} />
+                            <Button onClick={this._handleCloseClick.bind(this)} />
                         </div>
                     </div>
                 </div>

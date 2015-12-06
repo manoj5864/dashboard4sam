@@ -62,6 +62,11 @@ module.exports = (grunt) ->
         tasks: ['build-dev']
         options:
           spawn: false
+      test:
+        files: ['./src/**', './src-test/**']
+        tasks: ['build-test']
+        options:
+          spawn: false
 
     clean:
       babel: ['./build/tmp/compileBabel']
@@ -79,15 +84,44 @@ module.exports = (grunt) ->
           ext: '.js'
           expand: true
         ]
+      test:
+        options:
+          sourceMap: true
+          presets: ['es2015']
+          plugins: ["syntax-async-functions","transform-regenerator", "transform-react-jsx"]
+        files: [{
+            cwd: 'src'
+            src: ['**/*.js', '**/*.jsx']
+            dest: 'build/tmp/compileBabelTest'
+            ext: '.js'
+            expand: true
+          },
+          {
+            cwd: 'src-test'
+            src: ['**/*.js', '**/*.jsx']
+            dest: 'build/tmp/compileBabelTest'
+            ext: '.js'
+            expand: true
+          }
+        ]
     browserify:
       code:
         dest: 'build/tmp/compileBrowserify/dist.js'
         src: ['build/tmp/compileBabel/**/*.js']
+    mochaTest:
+      test:
+        options:
+          reporter: 'spec'
+          captureFile: 'test-results.txt'
+          quiet: false
+          clearRequireCache: false
+        src: ['build/tmp/compileBabelTest/model/**/*.js']
 
   grunt.loadNpmTasks 'grunt-babel'
   grunt.loadNpmTasks 'grunt-browserify'
   grunt.registerTask 'init-dev', ['copy:lib_dev', 'copy:css_dev']
   grunt.registerTask 'build-dev', ['babel:code', 'browserify:code', 'copy:sam_dev']
+  grunt.registerTask 'build-test', ['babel:test']
   grunt.registerTask 'build-prod', ['babel:code', 'browserify:code', 'copy:css_prod', 'copy:lib_prod', 'copy:sam_prod']
 
   grunt.loadNpmTasks 'grunt-contrib-clean'
@@ -95,3 +129,4 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-contrib-copy'
+  grunt.loadNpmTasks 'grunt-mocha-test'
