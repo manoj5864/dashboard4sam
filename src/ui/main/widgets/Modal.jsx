@@ -18,31 +18,30 @@ export class Modal extends mixin(React.Component, TLoggable) {
 
     static show(content) {
         ReactDOM.render(
-            <Modal>
-                {content}
-            </Modal>
+            <Modal content={content} />
         , $(MODAL_MOUNTPOINT)[0])
     }
 
     static hide() {
-        React.unmountComponentAtNode($(MODAL_MOUNTPOINT)[0]);
+        ReactDOM.unmountComponentAtNode($(MODAL_MOUNTPOINT)[0]);
     }
 
     _handleCloseClick() {
-        this.hide()
+        this.debug('Modal Close invoked...')
+        Modal.hide()
     }
 
     render() {
         return(
-            <div className="modal fade in" tabindex="-1" style="display: block;" ref={c => this._modalElement = c}>
+            <div className="modal fade in" tabIndex="-1" style={{display: 'block'}} ref={c => this._modalElement = c}>
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header"></div>
                         <div className="modal-body">
-
+                            {this.props.content}
                         </div>
                         <div className="modal-footer">
-                            <Button onClick={this._handleCloseClick.bind(this)} />
+                            <Button text="Close" onClick={this._handleCloseClick.bind(this)} />
                         </div>
                     </div>
                 </div>

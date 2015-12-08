@@ -3,7 +3,8 @@ import {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLList,
-    GraphQLString
+    GraphQLString,
+    GraphQLInterfaceType
 } from 'graphql';
 
 let schemaFunc = (cortexWorkspace) => {
@@ -13,6 +14,10 @@ let schemaFunc = (cortexWorkspace) => {
         fields:  {
             name: {
                 type: GraphQLString
+            },
+            entity: {
+                description: 'Retrieve list of entities related',
+                resolveType: () => new GraphQLList(entity)
             }
         }
     })
@@ -36,10 +41,12 @@ let schemaFunc = (cortexWorkspace) => {
                 type: GraphQLString
             },
             referencedBy: {
-                type: new GraphQLList(entityClassReference)
+                type: new GraphQLList(entityClassReference),
+                resolve: () => null
             },
             referencesTo: {
-                type: new GraphQLList(entityClassReference)
+                type: new GraphQLList(entityClassReference),
+                resolve: () => null
             }
         }
     })
@@ -70,7 +77,13 @@ let schemaFunc = (cortexWorkspace) => {
             fields: {
                 entity: {
                     type: entityList,
-                    resolve: () => cortexWorkspace.getEntities()
+                    args: {
+                      id: {
+                          description: 'ID of the entity to look for',
+                          type: GraphQLString
+                      }
+                    },
+                    resolve: (root, {id}) => cortexWorkspace.getEntities()
                 },
 
                 type: {
@@ -79,9 +92,18 @@ let schemaFunc = (cortexWorkspace) => {
                         id: {
                             description: 'ID of the entity class',
                             type: GraphQLString
+                        },
+                        name: {
+                            description: 'Name of the entity class',
+                            type: GraphQLString
                         }
                     },
-                    resolve: (root, {id}) => cortexWorkspace.getEntityTypes()
+                    resolve: async (root, {id, name}) => {
+                        let types = await cortexWorkspace.getEntityTypes()
+                        if (id) types = types.filter((it) => it.id == id)
+                        if (name) types = types.filter((it) => id.name == name)
+                        return types
+                    }
                 }
             }
         })

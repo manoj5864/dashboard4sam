@@ -1,4 +1,4 @@
-import {SocioCortexApi} from '../SocioCortexApi'
+import {SocioCortexApi} from '../api/SocioCortexApi'
 
 export class ApiTests {
 

@@ -12,6 +12,29 @@ let schemaFunc = (cortexSchema) => {
         return graphql(schema(workspace), query)
     }
 
+    let requirementType = new GraphQLObjectType({
+        name: 'Requirement Type',
+        fields: {
+            name: {
+                type: GraphQLString
+            }
+        }
+    })
+
+    let projectType = new GraphQLObjectType({
+        name: 'Project Type',
+        fields: {
+            name: {
+                type: GraphQLString
+            },
+            requirements: {
+                type: new GraphQLList(requirementType)
+            }
+        }
+    })
+
+
+
     let _entitySchema = new GraphQLSchema({
         query: new GraphQLObjectType({
             name: 'Query',
