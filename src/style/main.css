@@ -2095,3 +2095,9 @@ body.fixed-left .side-menu.left {
     border-radius: 8px;
     pointer-events: none;
 }
+
+.legend {
+    fill: ghostwhite;
+
+
+}

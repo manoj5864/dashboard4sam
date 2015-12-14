@@ -22,6 +22,16 @@ class Statistics extends mixin(null, TLoggable) {
     // 1st element - % of Architecture elements with task
     // 2nd element - Architecture elements without task
     let data = [70, 30]
+
+    var total = _.reduce(data, function (sum, el) {
+      return sum + el
+    }, 0)
+
+    var percentageData = _.map(data, function (x) {
+      return x / total * 100
+    })
+
+    let categories = ["Architecture with task", "Archtecture without task"]
     let actualArchitectureElems = 110
     //let actualArchitectureElems = 110
     let color = d3.scale.ordinal()
@@ -41,23 +51,36 @@ class Statistics extends mixin(null, TLoggable) {
           return d
         })
 
+    function selectArc(element) {
+      element.style.fillOpacity = 1
+      element.style.strokeWidth = "2px"
+    }
+
+    function deselectArc(element) {
+      element.style.fillOpacity = .7
+      element.style.strokeWidth = "1px"
+    }
+
     var arcs = group.selectAll(".arc")
-        .data(pie(data))
+        .data(pie(percentageData))
         .enter()
         .append("g")
         .attr("class", "arc")
-        .on("mouseover", function (d) {
-          console.log("mouseover action" + d.data)
-          d3.select(this)
-              .style("stroke-width", "2px")
-              .style("stroke", "black")
+        .attr("fill-opacity", ".7")
+        .attr("stroke-width", "1px")
+    d3.selectAll(".arc").on("mouseover", function () {
+          var element = $(this)
+              //.style("fillOpacity", 1)
+              //.style("strokeWidth", "2px")
+          selectArc(element[0])
         })
-        .on("mouseout", function (d) {
-          d3.select(this)
-              .style("stroke-width", "1px")
-              .style("stroke", function (d) {
-                return color(d.data)
-              })
+        .on("mouseout", function () {
+          //var element = d3.select(this)
+          var element = $(this)
+          //d3.select(this)
+          //    .style("fillOpacity", .7)
+          //    .style("strokeWidth", "1px")
+          deselectArc(element[0])
         })
 
     arcs.append("path")
@@ -65,6 +88,7 @@ class Statistics extends mixin(null, TLoggable) {
         .attr("fill", function (d) {
           return color(d.data)
         })
+
 
     arcs.append("text")
         .attr("font-size", "2em")
@@ -75,6 +99,54 @@ class Statistics extends mixin(null, TLoggable) {
         .text(function (d) {
           return d.data + "%"
         })
+
+    // Adding a legend
+
+    var legendWidth = 250
+    group.append("g")
+        .attr("class", "legend")
+
+    _.forEach(categories, function (x) {
+      d3.selectAll(".legend").append("rect")
+          .attr("class", "architecture")
+          .attr("id", "architecture" + categories.indexOf(x))
+          .attr("width", 20)
+          .attr("height", 20)
+          //.attr("transform", "translate(150, " + (categories.indexOf(x) * 25 + 55) + ")")
+          .attr("x", 160)
+          .attr("y", (categories.indexOf(x) * 25 + 55))
+          .attr("fill", color(data[categories.indexOf(x)]))
+          .attr("fill-opacity", .7)
+          .attr("stroke-opacity", 0.8)
+      d3.selectAll(".legend").append("text")
+          .attr("x", 200)
+          .attr("y", 55 + (categories.indexOf(x) + 1) * 20)
+          .text(x)
+    })
+
+    d3.selectAll(".legend").selectAll(".architecture")
+        .on("mouseover", function () {
+          var contextId = $(this).context.id
+          d3.select(this)
+              .attr("fill-opacity", "1")
+          var element = d3.selectAll(".arc")[0][0]
+          if (contextId == "architecture1") {
+            element = d3.selectAll(".arc")[0][1]
+          }
+          selectArc(element)
+        })
+        .on("mouseout", function () {
+          var contextId = $(this).context.id
+          d3.select(this)
+              .attr("fill-opacity", ".7")
+          var element = d3.selectAll(".arc")[0][0]
+          if (contextId == "architecture1") {
+            element = d3.selectAll(".arc")[0][1]
+          }
+          deselectArc(element)
+        })
+
+
   }
 
   constructor(svg) {
