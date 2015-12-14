@@ -173,11 +173,25 @@ class SocioCortexAttributeDefinition {
     }
 
     async get() {
-
+        return new SocioCortexAttributeDefinition(await RequestHelper.get(this.href))
     }
 }
 
-class SocioCortexEntityDetails {
+class SocioCortexAttributeDefinitionDetails {
+
+    constructor(json) {
+        this._json = json
+    }
+
+    get id() {return this._json.id}
+    get readOnly() {return this._json.readOnly}
+    get multiplicity() {return this._json.multiplicity}
+    get attributeType() {return this._json.attributeType}
+    get options() {return this._json.options}
+
+}
+
+class SocioCortexEntityTypeDetails {
 
     constructor(json) {
         this._json = json
@@ -223,14 +237,14 @@ class SocioCortexEntitytype {
         return this._json.href
     }
 
-    async details() {
+    get details() {
         return this.get()
     }
 
     async get() {
         try {
             json = await this._cortexClient._makeRequest(this.href)
-            return new SocioCortexEntityDetails(json)
+            return new SocioCortexEntityTypeDetails(json)
         } catch (ex) {
         }
     }

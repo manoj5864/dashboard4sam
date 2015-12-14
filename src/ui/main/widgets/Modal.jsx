@@ -3,9 +3,12 @@ import {TLoggable} from '../../../util/logging/TLoggable'
 import {Button} from './Button'
 
 let React = window.React
+let ReactDOM = window.ReactDOM
 let $ = window.$
 
-class Modal extends mixin(React.Component, TLoggable) {
+const MODAL_MOUNTPOINT = '#modalMountpoint'
+
+export class Modal extends mixin(React.Component, TLoggable) {
     constructor(props) {
         super()
         this.state = {
@@ -13,28 +16,32 @@ class Modal extends mixin(React.Component, TLoggable) {
         }
     }
 
-    show(content) {
-        if (this.state.visible) { throw new Error('Modal Dialog is already visible')}
-
+    static show(content) {
+        ReactDOM.render(
+            <Modal content={content} />
+        , $(MODAL_MOUNTPOINT)[0])
     }
 
-    hide() {
-
+    static hide() {
+        ReactDOM.unmountComponentAtNode($(MODAL_MOUNTPOINT)[0]);
     }
 
     _handleCloseClick() {
-        this.hide()
+        this.debug('Modal Close invoked...')
+        Modal.hide()
     }
 
     render() {
         return(
-            <div className="modal fade in" tabindex="-1" style="display: block;" ref={c => this._modalElement = c}>
+            <div className="modal fade in" tabIndex="-1" style={{display: 'block'}} ref={c => this._modalElement = c}>
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header"></div>
-                        <div className="modal-body"></div>
+                        <div className="modal-body">
+                            {this.props.content}
+                        </div>
                         <div className="modal-footer">
-                            <Button onClick={$.proxy(this._handleCloseClick, this)} />
+                            <Button text="Close" onClick={this._handleCloseClick.bind(this)} />
                         </div>
                     </div>
                 </div>

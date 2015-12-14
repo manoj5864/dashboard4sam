@@ -3,7 +3,7 @@ import {TLoggable} from '../../util/logging/TLoggable'
 
 let React = window.React
 
-export class ContentPage extends mixin(React.Component, TLoggable) {
+export class ContentPage extends React.Component {
     constructor() {
         super()
     }
@@ -49,10 +49,15 @@ export class Content extends mixin(React.Component, TLoggable){
     }
 
     set currentPage(page) {
-        if (!(page instanceof ContentPage)) throw new Error('No content page given')
         this.setState({
             page: page
         })
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Page changed
+        if (prevState.page != this.state.page)
+        ReactDOM.render(this.state.page, this._pageElementHolder)
     }
 
     render() {
@@ -72,8 +77,7 @@ export class Content extends mixin(React.Component, TLoggable){
                         </div>
                         <div className="row">
                             <div className="col-sm-12">
-                                <div className="card-box">
-                                    {this.state.page.render()}
+                                <div className="card-box" ref={c => this._pageElementHolder = c}>
                                 </div>
                             </div>
                         </div>
