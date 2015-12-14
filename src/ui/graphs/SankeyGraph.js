@@ -77,12 +77,13 @@ class SankeyGraph extends mixin(null, TLoggable) {
 
   constructor() {
     super()
+    console.log("Are we here?")
     this._init()
   }
 
 }
 
-export class SankeyGraphPage extends ContentPage {
+export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
 
   constructor() {
     super()
@@ -110,6 +111,19 @@ export class SankeyGraphPage extends ContentPage {
 
   render() {
     var units = ""
+
+    //let getEntities = async () => {
+    //  let entities = await app.socioCortexManager.executeQuery(`
+    //            query EntityTypes {
+    //                type {
+    //                    id
+    //                    name
+    //                }
+    //            }
+    //        `)
+    //  console.log("data: " + entities)
+    //}
+    //getEntities()
 
     var margin = {top: 10, right: 10, bottom: 10, left: 10},
         width = 400 - margin.left - margin.right,

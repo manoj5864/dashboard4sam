@@ -75,10 +75,12 @@ d3.json('../src/test/data.json', (err, res) =>  {
 import {app} from './Application'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
+import {BarChartPage} from './ui/graphs/BarChart'
 app.start()
 
 
 //let queryBuilder = new QueryBuilder()
-let sankeyGraphPage = new SankeyGraphPage()
+//let sankeyGraphPage = new SankeyGraphPage()
 //debugger;
-app.pageManager.switchPage(sankeyGraphPage)
+//app.pageManager.switchPage(<SankeyGraphPage/>)
+app.pageManager.switchPage(<BarChartPage/>)
