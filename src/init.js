@@ -76,6 +76,7 @@ import {app} from './Application'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
 import {BarChartPage} from './ui/graphs/BarChart'
+import {StatisticsPage} from './ui/graphs/Statistics'
 app.start()
 
 
@@ -83,4 +84,4 @@ app.start()
 //let sankeyGraphPage = new SankeyGraphPage()
 //debugger;
 //app.pageManager.switchPage(<SankeyGraphPage/>)
-app.pageManager.switchPage(<BarChartPage/>)
+app.pageManager.switchPage(<StatisticsPage/>)
