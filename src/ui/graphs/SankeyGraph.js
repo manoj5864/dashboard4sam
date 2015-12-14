@@ -3,6 +3,7 @@ import {TLoggable} from '../../util/logging/TLoggable'
 import './util/d3-sankey'
 import {ContentPage} from '../main/Content'
 import ReactFauxDOM from 'react-faux-dom'
+import _ from 'lodash';
 let d3 = window.d3
 
 class SankeyNode {
@@ -88,10 +89,11 @@ export class SankeyGraphPage extends ContentPage {
   }
 
   get name() {
-    return "Sankey Builder"
+    return "Sankey View"
   }
 
   async componentDidMount() {
+
     let surfaceManager = new SankeyGraph(this._svgElement)
     /*
      let entities = await app.socioCortexManager.executeQuery(`
@@ -107,7 +109,7 @@ export class SankeyGraphPage extends ContentPage {
   }
 
   render() {
-    var units = "Widgets"
+    var units = ""
 
     var margin = {top: 10, right: 10, bottom: 10, left: 10},
         width = 400 - margin.left - margin.right,
@@ -151,9 +153,9 @@ export class SankeyGraphPage extends ContentPage {
         {
           "name": "Req 3b"
         },
-        {
-          "name": "System for managing customers"
-        },
+        //{
+        //  "name": "System for managing customers"
+        //},
         {
           "name": "Req 3a"
         },
@@ -172,9 +174,9 @@ export class SankeyGraphPage extends ContentPage {
         {
           "name": "Decision 3"
         },
-        {
-          "name": "Application Server"
-        },
+        //{
+        //  "name": "Application Server"
+        //},
         {
           "name": "Architecture 3"
         },
@@ -250,6 +252,29 @@ export class SankeyGraphPage extends ContentPage {
       }
     })
 
+    console.log(graph.nodes)
+    //// TODO Change the coding style
+    //var indexesToBeRemoved = []
+    //var linksExists = false
+    //_.forEach(graph.nodes, function(x){
+    //    _.forEach(graph.links, function(link){
+    //      if (x.name == link.source.name || x.name == link.target.name) {
+    //        linksExists = true
+    //        return
+    //      }
+    //    })
+    //  if (!linksExists) {
+    //    indexesToBeRemoved.push(graph.nodes.indexOf(x))
+    //  }
+    //  linksExists = false
+    //})
+    //
+    //console.log(indexesToBeRemoved)
+    //_.forEach(indexesToBeRemoved, function(x){
+    //  graph.nodes.splice(x, 1)
+    //})
+
+
     sankey
         .nodes(graph.nodes)
         .links(graph.links)
@@ -271,8 +296,8 @@ export class SankeyGraphPage extends ContentPage {
 // add the link titles
     link.append("title")
         .text(function (d) {
-          return d.source.name + " → " +
-              d.target.name + "\n" + format(d.value)
+          return d.source.name + " -> " +
+              d.target.name
         })
 
 // add in the nodes
@@ -283,6 +308,20 @@ export class SankeyGraphPage extends ContentPage {
         .attr("transform", function (d) {
           return "translate(" + d.x + "," + d.y + ")"
         })
+        .on("click", function () {
+          clickAction()
+        })
+        //.call(d3.behavior.drag()
+        //    .origin(function(d) { return d; })
+        //    .on("dragstart", function() {
+        //      this.parentNode.appendChild(this); })
+        //    .on("drag", dragmove))
+
+
+    function clickAction() {
+      console.log("clicked")
+
+    }
 
 
     //d3.behavior.drag().call(someDiv.selectAll("g").selectAll(".node"))
@@ -304,11 +343,11 @@ export class SankeyGraphPage extends ContentPage {
           return d.color = color(d.name.replace(/ .*/, ""))
         })
         .style("stroke", function (d) {
-          return d3.rgb(d.color).darker(2)
+          return d3.rgb(d.color).darker(4)
         })
         .append("title")
         .text(function (d) {
-          return d.name + "\n" + format(d.value)
+          return d.name
         })
 
 // add in the title for the nodes
@@ -326,7 +365,7 @@ export class SankeyGraphPage extends ContentPage {
         .filter(function (d) {
           return d.x < width / 2
         })
-        .attr("x", 6 + sankey.nodeWidth())
+        .attr("x", 4 + sankey.nodeWidth())
         .attr("text-anchor", "start")
 
     //the function for moving the nodes
@@ -345,7 +384,7 @@ export class SankeyGraphPage extends ContentPage {
 
     return (
         <div id="chart">
-          <svg width="600" height="600">
+          <svg width="800" height="700">
             {someDiv.node().toReact()}
           </svg>
         </div>
