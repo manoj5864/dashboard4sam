@@ -16,8 +16,8 @@ let schemaFunc = (cortexWorkspace) => {
                 type: GraphQLString
             },
             entity: {
-                description: 'Retrieve list of entities related',
-                resolveType: () => new GraphQLList(entity)
+                description: 'Retrieve the related entity',
+                type: GraphQLString
             }
         }
     })
@@ -80,7 +80,8 @@ let schemaFunc = (cortexWorkspace) => {
                     args: {
                       id: {
                           description: 'ID of the entity to look for',
-                          type: GraphQLString
+                          type: GraphQLString,
+                          defaultValue: null
                       }
                     },
                     resolve: (root, {id}) => cortexWorkspace.getEntities()
@@ -91,11 +92,13 @@ let schemaFunc = (cortexWorkspace) => {
                     args: {
                         id: {
                             description: 'ID of the entity class',
-                            type: GraphQLString
+                            type: GraphQLString,
+                            defaultValue: null
                         },
                         name: {
                             description: 'Name of the entity class',
-                            type: GraphQLString
+                            type: GraphQLString,
+                            defaultValue: null
                         }
                     },
                     resolve: async (root, {id, name}) => {
