@@ -271,7 +271,7 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
 
   componentDidMount() {
 
-    let surfaceManager = new SankeyGraph(this._svgElement)
+    new SankeyGraph(this._svgElement)
     /*
      let entities = await app.socioCortexManager.executeQuery(`
      query EntityTypes {

@@ -17,6 +17,7 @@
   "dependencies": {
     "d3": "~3.5.9",
     "bootstrap": "~3.3.5",
-    "react": "~0.14.3"
+    "react": "~0.14.3",
+    "plotly": "https://github.com/plotly/plotly.js/blob/v1.2.1/dist/plotly.js?raw=true"
   }
 }

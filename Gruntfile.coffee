@@ -11,6 +11,7 @@ module.exports = (grunt) ->
           {src: ['./bower_components/jquery/dist/jquery.js'], dest: './test/js/jquery.js'}
           {src: ['./bower_components/react/react.js'], dest: './test/js/react.js'}
           {src: ['./bower_components/react/react-dom.js'], dest: './test/js/react-dom.js'}
+          {src: ['./bower_components/plotly/index.js'], dest: './test/js/plotly.js'}
         ]
       lib_prod:
         options:
@@ -21,6 +22,7 @@ module.exports = (grunt) ->
           {src: ['./bower_components/jquery/dist/jquery.min.js'], dest: './out/js/jquery.js'}
           {src: ['./bower_components/react/react.min.js'], dest: './out/js/react.js'}
           {src: ['./bower_components/react/react-dom.min.js'], dest: './out/js/react-dom.js'}
+          {src: ['./bower_components/plotly/index.js'], dest: './test/js/plotly.js'}
         ]
       sam_dev:
         options:
@@ -38,11 +40,11 @@ module.exports = (grunt) ->
         options:
           flatten: true
         files: [
-          # Bootstrap
+# Bootstrap
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.min.css'], dest: './out/style/bootstrap.css'}
-          # Main Style
+# Main Style
           {src : ['./src/style/main.css'], dest: './out/style/main.css'}
-          # Images
+# Images
           {expand: true, flatten: true, src: ['./resources/images/**'], dest: './out/images/'}
         ]
       css_dev:
@@ -50,9 +52,9 @@ module.exports = (grunt) ->
           flatten: true
         files: [
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.css'], dest: './test/style/bootstrap.css'}
-          # Main Style
+# Main Style
           {src : ['./src/style/main.css'], dest: './test/style/main.css'}
-          # Images
+# Images
           {expand: true, flatten: true, src: ['./resources/images/**'], dest: './test/images/'}
         ]
 
@@ -90,12 +92,12 @@ module.exports = (grunt) ->
           presets: ['es2015']
           plugins: ["syntax-async-functions","transform-regenerator", "transform-react-jsx"]
         files: [{
-            cwd: 'src'
-            src: ['**/*.js', '**/*.jsx']
-            dest: 'build/tmp/compileBabelTest'
-            ext: '.js'
-            expand: true
-          },
+          cwd: 'src'
+          src: ['**/*.js', '**/*.jsx']
+          dest: 'build/tmp/compileBabelTest'
+          ext: '.js'
+          expand: true
+        },
           {
             cwd: 'src-test'
             src: ['**/*.js', '**/*.jsx']
