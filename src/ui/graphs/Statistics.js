@@ -12,16 +12,9 @@ let d3 = window.d3
 
 class Statistics extends mixin(null, TLoggable) {
 
-  _init(svg) {
-    console.log("Barchart init")
-    let w = d3.select(svg).attr('width')
-    let h = d3.select(svg).attr('height')
-    let r = h / 4
+  _addPieChartForArchitectureTasks(r, centerX, centerY, svg, colors,
+                                   data, categories, uniqueIdentifier) {
 
-    // TODO- Fetch data from SocioCortex
-    // 1st element - % of Architecture elements with task
-    // 2nd element - Architecture elements without task
-    let data = [70, 30]
 
     var total = _.reduce(data, function (sum, el) {
       return sum + el
@@ -31,16 +24,15 @@ class Statistics extends mixin(null, TLoggable) {
       return x / total * 100
     })
 
-    let categories = ["Architecture with task", "Archtecture without task"]
-    let actualArchitectureElems = 110
-    //let actualArchitectureElems = 110
-    let color = d3.scale.ordinal()
-        .range(["orange", "red"])
+
+
+    let colorArchiTask = d3.scale.ordinal()
+        .range(colors)
 
 
     var group = d3.select(svg)
         .append("g")
-        .attr("transform", "translate( 200, 200)")
+        .attr("transform", "translate( " + centerX + ", " + centerY + ")")
 
     var arc = d3.svg.arc()
         .innerRadius(0)
@@ -61,32 +53,28 @@ class Statistics extends mixin(null, TLoggable) {
       element.style.strokeWidth = "1px"
     }
 
-    var arcs = group.selectAll(".arc")
+    var arcs = group.selectAll(".arc" + uniqueIdentifier)
         .data(pie(percentageData))
         .enter()
         .append("g")
-        .attr("class", "arc")
+        .attr("class", "arc" + uniqueIdentifier)
         .attr("fill-opacity", ".7")
         .attr("stroke-width", "1px")
-    d3.selectAll(".arc").on("mouseover", function () {
+    d3.selectAll(".arc" + uniqueIdentifier).on("mouseover", function () {
           var element = $(this)
-              //.style("fillOpacity", 1)
-              //.style("strokeWidth", "2px")
+
           selectArc(element[0])
         })
         .on("mouseout", function () {
-          //var element = d3.select(this)
           var element = $(this)
-          //d3.select(this)
-          //    .style("fillOpacity", .7)
-          //    .style("strokeWidth", "1px")
+
           deselectArc(element[0])
         })
 
     arcs.append("path")
         .attr("d", arc)
         .attr("fill", function (d) {
-          return color(d.data)
+          return colorArchiTask(d.data)
         })
 
 
@@ -104,34 +92,33 @@ class Statistics extends mixin(null, TLoggable) {
 
     var legendWidth = 250
     group.append("g")
-        .attr("class", "legend")
+        .attr("class", "legend" + uniqueIdentifier)
 
     _.forEach(categories, function (x) {
-      d3.selectAll(".legend").append("rect")
-          .attr("class", "architecture")
-          .attr("id", "architecture" + categories.indexOf(x))
+      d3.selectAll(".legend" + uniqueIdentifier).append("rect")
+          .attr("class", uniqueIdentifier)
+          .attr("id", uniqueIdentifier + categories.indexOf(x))
           .attr("width", 20)
           .attr("height", 20)
-          //.attr("transform", "translate(150, " + (categories.indexOf(x) * 25 + 55) + ")")
-          .attr("x", 160)
-          .attr("y", (categories.indexOf(x) * 25 + 55))
-          .attr("fill", color(data[categories.indexOf(x)]))
+          .attr("x", -70)
+          .attr("y", (categories.indexOf(x) * 25 + 155))
+          .attr("fill", colorArchiTask(data[categories.indexOf(x)]))
           .attr("fill-opacity", .7)
           .attr("stroke-opacity", 0.8)
-      d3.selectAll(".legend").append("text")
-          .attr("x", 200)
-          .attr("y", 55 + (categories.indexOf(x) + 1) * 20)
+      d3.selectAll(".legend" + uniqueIdentifier).append("text")
+          .attr("x", -40)
+          .attr("y", 155 + (categories.indexOf(x) + 1) * 20)
           .text(x)
     })
 
-    d3.selectAll(".legend").selectAll(".architecture")
+    d3.selectAll(".legend"+uniqueIdentifier).selectAll("."+uniqueIdentifier)
         .on("mouseover", function () {
           var contextId = $(this).context.id
           d3.select(this)
               .attr("fill-opacity", "1")
-          var element = d3.selectAll(".arc")[0][0]
-          if (contextId == "architecture1") {
-            element = d3.selectAll(".arc")[0][1]
+          var element = d3.selectAll(".arc" + uniqueIdentifier)[0][0]
+          if (contextId == "archiTask1" || contextId == "archiDeci1") {
+            element = d3.selectAll(".arc" + uniqueIdentifier)[0][1]
           }
           selectArc(element)
         })
@@ -139,12 +126,38 @@ class Statistics extends mixin(null, TLoggable) {
           var contextId = $(this).context.id
           d3.select(this)
               .attr("fill-opacity", ".7")
-          var element = d3.selectAll(".arc")[0][0]
-          if (contextId == "architecture1") {
-            element = d3.selectAll(".arc")[0][1]
+          var element = d3.selectAll(".arc" + uniqueIdentifier)[0][0]
+          if (contextId == "archiTask1" || contextId == "archiDeci1") {
+            element = d3.selectAll(".arc" + uniqueIdentifier)[0][1]
           }
           deselectArc(element)
         })
+  }
+
+  _init(svg) {
+    let w = d3.select(svg).attr('width')
+    let h = d3.select(svg).attr('height')
+    let r = 130
+    // TODO- Fetch data from SocioCortex
+    // 1st element - % of Architecture elements with task
+    // 2nd element - Architecture elements without task
+    let archiTaskCategories = ["Architecture with task", "Archtecture without task"]
+    let archiTaskData = [70, 30] // Fetch from the datasource
+    let architectureTaskColors = ["orange", "red"]
+    let uniqueIdentifier = "archiTask"
+    this._addPieChartForArchitectureTasks(r, 200, 150, svg, architectureTaskColors,
+        archiTaskData, archiTaskCategories, uniqueIdentifier)
+
+    // TODO- Fetch data from SocioCortex
+    let archiDecisionCategories = ["Architecture with decision", "Archtecture without decision"]
+    let archiDecisionData = [70, 30] // Fetch from the datasource
+    let architectureDecisionColors = ["green", "red"]
+    uniqueIdentifier = "archiDeci"
+    this._addPieChartForArchitectureTasks(r, 200, 500, svg, architectureDecisionColors,
+        archiDecisionData, archiDecisionCategories, uniqueIdentifier)
+
+    //this._addPieChartForArchitectureTasks(r, 200, 800, svg)
+
 
 
   }
@@ -186,7 +199,7 @@ export class StatisticsPage extends mixin(React.Component, TLoggable) {
   render() {
     console.log("render")
     return (
-        <svg width="600" height="600" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+        <svg width="600" height="1600" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
         </svg>
     )
   }
