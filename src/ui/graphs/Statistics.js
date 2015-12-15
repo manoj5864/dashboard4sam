@@ -25,7 +25,6 @@ class Statistics extends mixin(null, TLoggable) {
     })
 
 
-
     let colorArchiTask = d3.scale.ordinal()
         .range(colors)
 
@@ -53,6 +52,11 @@ class Statistics extends mixin(null, TLoggable) {
       element.style.strokeWidth = "1px"
     }
 
+    var div = d3.select(svg).append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .text("");
+
     var arcs = group.selectAll(".arc" + uniqueIdentifier)
         .data(pie(percentageData))
         .enter()
@@ -61,14 +65,30 @@ class Statistics extends mixin(null, TLoggable) {
         .attr("fill-opacity", ".7")
         .attr("stroke-width", "1px")
     d3.selectAll(".arc" + uniqueIdentifier).on("mouseover", function () {
+          div.transition()
+              .duration(200)
+              .style("opacity", .9)
+              .style("left", (d3.event.pageX + 16) + "px")
+              .style("top", (d3.event.pageY + 16) + "px")
+              .text(function(d) { return d })
+          console.log("left: " + d3.event.pageX)
+          console.log("top: " + d3.event.pageY)
           var element = $(this)
-
           selectArc(element[0])
         })
         .on("mouseout", function () {
+          //div.transition()
+          //    .duration(500)
+          //    .style("opacity", 0);
           var element = $(this)
-
           deselectArc(element[0])
+        })
+        .on("mousemove", function () {
+          //console.log(d3.event);
+          div
+              .style("opacity", .9)
+              .style("top", (d3.event.pageY + 16) + "px")
+              .style("left", (d3.event.pageX + 16) + "px");
         })
 
     arcs.append("path")
@@ -79,7 +99,7 @@ class Statistics extends mixin(null, TLoggable) {
 
 
     arcs.append("text")
-        .attr("font-size", "2em")
+        .attr("font-size", "1.4em")
         .attr("border", "black")
         .attr("transform", function (d) {
           return "translate(" + arc.centroid(d) + ")"
@@ -90,7 +110,6 @@ class Statistics extends mixin(null, TLoggable) {
 
     // Adding a legend
 
-    var legendWidth = 250
     group.append("g")
         .attr("class", "legend" + uniqueIdentifier)
 
@@ -101,17 +120,17 @@ class Statistics extends mixin(null, TLoggable) {
           .attr("width", 20)
           .attr("height", 20)
           .attr("x", -70)
-          .attr("y", (categories.indexOf(x) * 25 + 155))
+          .attr("y", (categories.indexOf(x) * 25 + 125))
           .attr("fill", colorArchiTask(data[categories.indexOf(x)]))
           .attr("fill-opacity", .7)
           .attr("stroke-opacity", 0.8)
       d3.selectAll(".legend" + uniqueIdentifier).append("text")
           .attr("x", -40)
-          .attr("y", 155 + (categories.indexOf(x) + 1) * 20)
+          .attr("y", (categories.indexOf(x) + 1) * 20 + 125)
           .text(x)
     })
 
-    d3.selectAll(".legend"+uniqueIdentifier).selectAll("."+uniqueIdentifier)
+    d3.selectAll(".legend" + uniqueIdentifier).selectAll("." + uniqueIdentifier)
         .on("mouseover", function () {
           var contextId = $(this).context.id
           d3.select(this)
@@ -137,7 +156,7 @@ class Statistics extends mixin(null, TLoggable) {
   _init(svg) {
     let w = d3.select(svg).attr('width')
     let h = d3.select(svg).attr('height')
-    let r = 130
+    let r = 100
     // TODO- Fetch data from SocioCortex
     // 1st element - % of Architecture elements with task
     // 2nd element - Architecture elements without task
@@ -157,7 +176,6 @@ class Statistics extends mixin(null, TLoggable) {
         archiDecisionData, archiDecisionCategories, uniqueIdentifier)
 
     //this._addPieChartForArchitectureTasks(r, 200, 800, svg)
-
 
 
   }
