@@ -31,6 +31,7 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
     return (
         <div>
           <table>
+            <tbody>
             <tr>
               <td><PlotlyStackBarChart // Architecture Completeness Stats
                   values1={[15,40,30]}
@@ -54,7 +55,9 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
                   title="Requirements Completeness Stats"
               >
               </PlotlyStackBarChart></td>
-            </tr>
+              </tr>
+            </tbody>
+            <tbody>
             <tr>
               <td><PlotlyStackBarChart // Decision Completeness Stats
                   values1={[15]}
@@ -79,6 +82,7 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
               >
               </PlotlyStackBarChart></td>
             </tr>
+            </tbody>
 
           </table>
 
