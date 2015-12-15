@@ -69,8 +69,8 @@ class SocioCortexManager extends mixin(null, TLoggable) {
 
     init() {
         this._cortexClient = new SocioCortexApi(
-            'christopher@janietz.eu',
-            '105u60id1kf1w',
+            'sayan.mnit@gmail.com',
+            '16rz3ulpit60k',
             'http://vmmatthes21.informatik.tu-muenchen.de/api/v1'
         )
         this._workspace = this._cortexClient.getWorkspace('16eh5j1cwrrny')
