@@ -11,13 +11,15 @@ let schemaFunc = (cortexWorkspace) => {
 
     let entityClassReference = new GraphQLObjectType({
         name: 'EntityClassReference',
-        fields:  {
-            name: {
-                type: GraphQLString
-            },
-            entity: {
-                description: 'Retrieve the related entity',
-                type: GraphQLString
+        fields: () => {
+            return {
+                name: {
+                    type: GraphQLString
+                },
+                entity: {
+                    description: 'Retrieve the related entity',
+                    type: entity
+                }
             }
         }
     })
@@ -42,7 +44,24 @@ let schemaFunc = (cortexWorkspace) => {
             },
             referencedBy: {
                 type: new GraphQLList(entityClassReference),
-                resolve: () => null
+                resolve: async (root) => {
+                    let attrDefs = (await root.details).attributeDefinitions
+                    return attrDefs.map((entry) => {
+                        return {
+                            name: 'test'
+                        }
+                    })
+                    //let promises = await Promise.all(details.attributeDefinitions.map((entry) => {
+                    //    return entry.details
+                    //}))
+                    //console.log(promises)
+                    /*.filter(async (attributeDetails) => {
+                        // Filter for links
+                        let details = await attributeDetails
+                        return attributeDetails.attributeType == 'Link'
+                    })
+                    */
+                }
             },
             referencesTo: {
                 type: new GraphQLList(entityClassReference),

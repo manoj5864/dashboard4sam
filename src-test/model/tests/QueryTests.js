@@ -1,4 +1,3 @@
-import {default as assert} from 'assert'
 import {schema} from '../CortexSchema'
 import {workspace} from  '../../tests/defaults/Clients'
 import {graphql} from 'graphql'
@@ -46,5 +45,20 @@ describe('QueryLanguage', function() {
                 }
             }
         `
+    })
+
+    it('should retrieve entity types including their references classes', async () => {
+        let query = `
+            query EntitiesWithClassesQuery {
+                type {
+                    referencedBy {
+                        name
+                    }
+                    name
+                }
+            }
+        `
+        let result = await graphql(schema(workspace), query)
+        expect(result.data.type[0]).to.be('')
     })
 })

@@ -1,6 +1,7 @@
 import 'babel-polyfill'
-import {default as request} from 'browser-request'
+import {default as request} from 'request'
 import {GraphQLObjectType} from 'graphql'
+import {StaticLogger} from '../../util/logging/TLoggable'
 
 class RequestHelper {
 
@@ -13,6 +14,7 @@ class RequestHelper {
     }
 
     static get(url, auth) {
+        StaticLogger.debug(`Requesting url: ${url}`, 'Web Requests')
         // Build the request object
         let req = {
             method: 'GET',
@@ -202,7 +204,7 @@ class SocioCortexEntityTypeDetails {
     }
 
     get attributeDefinitions() {
-        return this._json.attributeDefinitions
+        return this._json.attributeDefinitions.map((entry) => new SocioCortexAttributeDefinition(entry))
     }
 
     get versions() {
@@ -243,7 +245,7 @@ class SocioCortexEntitytype {
 
     async get() {
         try {
-            json = await this._cortexClient._makeRequest(this.href)
+            let json = await this._cortexClient._makeRequest(this.href)
             return new SocioCortexEntityTypeDetails(json)
         } catch (ex) {
         }
@@ -260,7 +262,9 @@ export class SocioCortexApi {
     }
 
     async _makeRequest(url) {
-        url = this._relative_url + url
+        if (!url.match(/^http:\/\/.*/)) {
+            url = this._relative_url + url
+        }
         return RequestHelper.get(
             url,
             {
