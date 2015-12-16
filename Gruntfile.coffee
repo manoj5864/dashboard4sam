@@ -11,6 +11,7 @@ module.exports = (grunt) ->
           {src: ['./bower_components/jquery/dist/jquery.js'], dest: './test/js/jquery.js'}
           {src: ['./bower_components/react/react.js'], dest: './test/js/react.js'}
           {src: ['./bower_components/react/react-dom.js'], dest: './test/js/react-dom.js'}
+          {src: ['./bower_components/plotly/index.js'], dest: './test/js/plotly.js'}
         ]
       lib_prod:
         options:
@@ -21,6 +22,7 @@ module.exports = (grunt) ->
           {src: ['./bower_components/jquery/dist/jquery.min.js'], dest: './out/js/jquery.js'}
           {src: ['./bower_components/react/react.min.js'], dest: './out/js/react.js'}
           {src: ['./bower_components/react/react-dom.min.js'], dest: './out/js/react-dom.js'}
+          {src: ['./bower_components/plotly/index.js'], dest: './out/js/plotly.js'}
         ]
       sam_dev:
         options:

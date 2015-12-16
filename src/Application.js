@@ -5,6 +5,11 @@ import {SocioCortexApi} from './service/api/SocioCortexApi'
 import {graphql} from 'graphql'
 import {schema} from './model/CortexSchema'
 
+// Pages
+import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
+import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
+import {QueryBuilder} from './ui/query_builder/QueryBuilder'
+
 
 let $ = window.$
 let React = window.React
@@ -35,9 +40,10 @@ class PageManager extends mixin(null, TLoggable) {
         this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
 
         // Add pages
-        this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.info("Testing") })
+        this._pageElement.menuSpot.addItem('Query Builder', () => { this.switchPage(<QueryBuilder />)  })
+        this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.switchPage(<SankeyGraphPage />)  })
         this._pageElement.menuSpot.addItem('Treemap Diagram', () => { this.info("Testing") })
-        this._pageElement.menuSpot.addItem('Statistics', () => { this.info("Testing") })
+        this._pageElement.menuSpot.addItem('Statistics', () => { this.switchPage(<CompletenessStatsView />) })
 
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
