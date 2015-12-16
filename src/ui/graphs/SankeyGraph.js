@@ -5,29 +5,13 @@ import {ContentPage} from '../main/Content'
 import _ from 'lodash';
 let d3 = window.d3
 
-class SankeyNode {
-  get name() {
-    return name
-  }
-
-  get nodes() {
-    return this._connected_nodes
-  }
-
-  addNode(node) {
-    if (!(node instanceof SankeyNode)) {
-      throw new Error('Node must be of type SankeyNode')
-    }
-    this._connected_nodes.push(node)
-  }
-
-  constructor(name) {
-    this._name = name
-    this._connected_nodes = []
-  }
-}
-
 class SankeyGraph extends mixin(null, TLoggable) {
+
+  constructor(svg) {
+    super()
+    this.svg = svg
+    this._init(svg)
+  }
 
   _init(svg) {
     let width = d3.select(svg).attr('width')
@@ -36,122 +20,10 @@ class SankeyGraph extends mixin(null, TLoggable) {
     this._margin = {top: 1, right: 1, bottom: 6, left: 1}
     this._colorHelper = d3.scale.category20()
     this._numberFormater = d3.format(",.0f")
-    this._sankey = this._initSankey()
-  }
 
-  static _initSankey(width, height) {
-    return (
-        d3.sankey()
-            .nodeWidth(15)
-            .nodePadding(10)
-            .size([width, height])
-    )
-  }
-
-  _d3Link() {
-
-  }
-
-  _buildLinks(nodes) {
-    let nodeList = []
-    let linkList = []
-
-    // Traverse graph
-    let counter = 0
-    treatNode = (node) => {
-      counter += 1
-      if (counter == 3) throw new Error('Level of node connection must be <3')
-      let nodes = node.nodes
-      nodes.forEach(x => {
-        nodeList.push(x)
-        if (x.nodes.length > 0) treatNode(x)
-      })
-    }
-    nodes.forEach(x => {
-      counter = 0
-      nodeList.push(x)
-      treatNode(x)
-    })
-  }
-
-  constructor() {
-    super()
-    console.log("Are we here?")
-    this._init()
-  }
-
-}
-
-export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
-
-  constructor() {
-    super()
-  }
-
-  get name() {
-    return "Sankey View"
-  }
-
-  async componentDidMount() {
-
-    let surfaceManager = new SankeyGraph(this._svgElement)
-    /*
-     let entities = await app.socioCortexManager.executeQuery(`
-     query EntityTypes {
-     type {
-     name
-     }
-     }
-     `)
-     */
-
-
-  }
-
-  render() {
     var units = ""
-
-    //let getEntities = async () => {
-    //  let entities = await app.socioCortexManager.executeQuery(`
-    //            query EntityTypes {
-    //                type {
-    //                    id
-    //                    name
-    //                }
-    //            }
-    //        `)
-    //  console.log("data: " + entities)
-    //}
-    //getEntities()
-
-    var margin = {top: 10, right: 10, bottom: 10, left: 10},
-        width = 400 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom
-
-    var formatNumber = d3.format(",.0f"),    // zero decimal places
-        format = function (d) {
-          return formatNumber(d) + " " + units
-        },
-        color = d3.scale.category20()
-
-// append the svg canvas to the page
-    var someDiv = d3.select(ReactFauxDOM.createElement('svg'))
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")")
-
-// Set the sankey diagram properties
-    var sankey = d3.sankey()
-        .nodeWidth(25)
-        .nodePadding(30)
-        .size([width, height])
-
-    var path = sankey.link()
-
-// load the data
-//    var graph = fetchData()
+    // TODO : load the data from SocioCortex
+    //    var graph = fetchData()
     var graph = {
       "nodes": [
         {
@@ -253,135 +125,125 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
         }
       ]
     }
-    var nodeMap = {}
+
+    var margin = {top: 10, right: 10, bottom: 10, left: 10}
+    width = 1000 - margin.left - margin.right
+    height = 500 - margin.top - margin.bottom
+
+    var formatNumber = d3.format(",.0f"),    // zero decimal places
+        format = function (d) {
+          return formatNumber(d) + " " + units;
+        },
+        color = d3.scale.category20();
+
+    // append the svg canvas to the page
+    var svg = d3.select(svg)
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // Set the sankey diagram properties
+    var sankey = d3.sankey()
+        .nodeWidth(36)
+        .nodePadding(40)
+        .size([width, height]);
+
+    var path = sankey.link();
+
+    // load the data
+
+    var nodeMap = {};
     graph.nodes.forEach(function (x) {
-      nodeMap[x.name] = x
-    })
+      nodeMap[x.name] = x;
+    });
     graph.links = graph.links.map(function (x) {
       return {
         source: nodeMap[x.source],
         target: nodeMap[x.target],
         value: x.value
-      }
-    })
-
-    console.log(graph.nodes)
-    //// TODO Change the coding style
-    //var indexesToBeRemoved = []
-    //var linksExists = false
-    //_.forEach(graph.nodes, function(x){
-    //    _.forEach(graph.links, function(link){
-    //      if (x.name == link.source.name || x.name == link.target.name) {
-    //        linksExists = true
-    //        return
-    //      }
-    //    })
-    //  if (!linksExists) {
-    //    indexesToBeRemoved.push(graph.nodes.indexOf(x))
-    //  }
-    //  linksExists = false
-    //})
-    //
-    //console.log(indexesToBeRemoved)
-    //_.forEach(indexesToBeRemoved, function(x){
-    //  graph.nodes.splice(x, 1)
-    //})
-
+      };
+    });
 
     sankey
         .nodes(graph.nodes)
         .links(graph.links)
-        .layout(32)
+        .layout(32);
 
 // add in the links
-    var link = someDiv.append("g").selectAll(".link")
+    var link = svg.append("g").selectAll(".link")
         .data(graph.links)
         .enter().append("path")
         .attr("class", "link")
         .attr("d", path)
         .style("stroke-width", function (d) {
-          return Math.max(1, d.dy)
+          return Math.max(1, d.dy);
         })
         .sort(function (a, b) {
-          return b.dy - a.dy
-        })
+          return b.dy - a.dy;
+        });
 
 // add the link titles
     link.append("title")
         .text(function (d) {
           return d.source.name + " -> " +
-              d.target.name
-        })
+              d.target.name;
+        });
 
 // add in the nodes
-    var node = someDiv.append("g").selectAll(".node")
+    var node = svg.append("g").selectAll(".node")
         .data(graph.nodes)
         .enter().append("g")
         .attr("class", "node")
         .attr("transform", function (d) {
-          return "translate(" + d.x + "," + d.y + ")"
+          return "translate(" + d.x + "," + d.y + ")";
         })
-        .on("click", function () {
-          clickAction()
-        })
-        //.call(d3.behavior.drag()
-        //    .origin(function(d) { return d; })
-        //    .on("dragstart", function() {
-        //      this.parentNode.appendChild(this); })
-        //    .on("drag", dragmove))
-
-
-    function clickAction() {
-      console.log("clicked")
-
-    }
-
-
-    //d3.behavior.drag().call(someDiv.selectAll("g").selectAll(".node"))
-    //        .origin(function (d) {
-    //          return d
-    //        })
-    //        .on("dragstart", function () {
-    //          this.parentNode.appendChild(this)
-    //        })
-    //        .on("drag", dragmove)
+        .call(d3.behavior.drag()
+            .origin(function (d) {
+              return d;
+            })
+            .on("dragstart", function () {
+              this.parentNode.appendChild(this);
+            })
+            .on("drag", dragmove));
 
 // add the rectangles for the nodes
     node.append("rect")
         .attr("height", function (d) {
-          return d.dy
+          return d.dy;
         })
         .attr("width", sankey.nodeWidth())
         .style("fill", function (d) {
-          return d.color = color(d.name.replace(/ .*/, ""))
+          return d.color = color(d.name.replace(/ .*/, ""));
         })
         .style("stroke", function (d) {
-          return d3.rgb(d.color).darker(4)
+          return d3.rgb(d.color).darker(2);
         })
         .append("title")
         .text(function (d) {
-          return d.name
-        })
+          return d.name ;
+        });
 
 // add in the title for the nodes
     node.append("text")
         .attr("x", -6)
         .attr("y", function (d) {
-          return d.dy / 2
+          return d.dy / 2;
         })
         .attr("dy", ".35em")
         .attr("text-anchor", "end")
         .attr("transform", null)
         .text(function (d) {
-          return d.name
+          return d.name;
         })
         .filter(function (d) {
-          return d.x < width / 2
+          return d.x < width / 2;
         })
-        .attr("x", 4 + sankey.nodeWidth())
-        .attr("text-anchor", "start")
+        .attr("x", 6 + sankey.nodeWidth())
+        .attr("text-anchor", "start");
 
-    //the function for moving the nodes
+// the function for moving the nodes
     function dragmove(d) {
       d3.select(this).attr("transform",
           "translate(" + (
@@ -389,19 +251,45 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
           )
           + "," + (
               d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
-          ) + ")")
-      sankey.relayout()
-      link.attr("d", path)
+          ) + ")");
+      sankey.relayout();
+      link.attr("d", path);
     }
+  }
+}
+
+export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
+
+  constructor() {
+    super()
+  }
+
+  get name() {
+    return "Sankey View"
+  }
+
+  componentDidMount() {
+
+    new SankeyGraph(this._svgElement)
+    /*
+     let entities = await app.socioCortexManager.executeQuery(`
+     query EntityTypes {
+     type {
+     name
+     }
+     }
+     `)
+     */
 
 
+  }
+
+  render() {
     return (
-        <div id="chart">
-          <svg width="800" height="700">
-            {someDiv.node().toReact()}
-          </svg>
-        </div>
+        <svg width="600" height="1600" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+        </svg>
     )
+
 
   }
 
