@@ -16,10 +16,6 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     set currentHash(value) {
-        this._switchPage(value)
-    }
-
-    _switchPage() {
         window.location.hash = value
     }
 
@@ -32,7 +28,16 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     init() {
+        // Check current hash
+        let hash = this.currentHash
+        window.atob(hash)
+
         this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
+
+        // Add pages
+        this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.info("Testing") })
+        this._pageElement.menuSpot.addItem('Treemap Diagram', () => { this.info("Testing") })
+        this._pageElement.menuSpot.addItem('Statistics', () => { this.info("Testing") })
 
         $(document).ready(() => {
             $(window).bind('hashchange', () => {

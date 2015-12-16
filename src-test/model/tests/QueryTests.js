@@ -53,6 +53,9 @@ describe('QueryLanguage', function() {
                 type {
                     referencedBy {
                         name
+                        entityType {
+                            name
+                        }
                     }
                     name
                 }

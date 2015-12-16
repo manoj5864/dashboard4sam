@@ -12,6 +12,10 @@ export class ContentPage extends React.Component {
         throw new Error('Name must be specified by content page')
     }
 
+    get uriIdentifier() {
+        throw new Error('URI identifier must be specified by page')
+    }
+
     get subtitle() {
         return ""
     }

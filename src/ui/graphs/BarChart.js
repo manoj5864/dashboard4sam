@@ -2,7 +2,6 @@ import {mixin} from '../../util/mixin'
 import {TLoggable} from '../../util/logging/TLoggable'
 import './util/d3-sankey'
 import {ContentPage} from '../main/Content'
-import ReactFauxDOM from 'react-faux-dom'
 import _ from 'lodash';
 import {app} from  '../../Application'
 let d3 = window.d3

@@ -14,15 +14,15 @@ class MenuEntry extends mixin(React.Component, TLoggable) {
 
     _buildStyle() {
         if (this.state.displaySubmenu) {
-            return "display: block;"
+            return {'display': 'block'}
         }
-        return ""
+        return {}
     }
 
     render() {
         return (
             <li className="has_sub">
-                <a href="#">{this.props.title}</a>
+                <a href="#" onClick={this.props.onClick}>{this.props.title}</a>
                 <ul className="list-unstyled" style={this._buildStyle()}>
 
                 </ul>
@@ -34,10 +34,28 @@ class MenuEntry extends mixin(React.Component, TLoggable) {
 export class Menu extends mixin(React.Component, TLoggable) {
     constructor() {
         super()
+        this.state = {
+            menuItems: []
+        }
     }
 
-    _buildMenuItems() {
+    addItem(name, callback) {
+        let menuItems = this.state.menuItems
+        menuItems.push({
+            name: name,
+            callback: callback
+        })
+        this.setState({
+            menuItems: menuItems
+        })
+    }
 
+
+
+    _buildMenuItems() {
+        return this.state.menuItems.map((item) => {
+            return <MenuEntry title={item.name} onClick={item.callback}/>
+        })
     }
 
     render() {

@@ -12,7 +12,7 @@ let $ = window.$
 
 //http://bl.ocks.org/cjrd/6863459
 
-export class QueryBuilder extends mixin(React.Component, TLoggable) {
+export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
     constructor() {
         super()

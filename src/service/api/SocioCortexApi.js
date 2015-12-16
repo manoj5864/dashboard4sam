@@ -175,7 +175,7 @@ class SocioCortexAttributeDefinition {
     }
 
     async get() {
-        return new SocioCortexAttributeDefinition(await RequestHelper.get(this.href))
+        return new SocioCortexAttributeDefinitionDetails(await RequestHelper.get(this.href))
     }
 }
 
@@ -185,11 +185,18 @@ class SocioCortexAttributeDefinitionDetails {
         this._json = json
     }
 
+    get name() { return this._json.name }
     get id() {return this._json.id}
     get readOnly() {return this._json.readOnly}
     get multiplicity() {return this._json.multiplicity}
     get attributeType() {return this._json.attributeType}
-    get options() {return this._json.options}
+    get options() {
+        let object = {}
+        Object.assign(object, this._json.options)
+        object.entityType = new SocioCortexEntity(null, object.entityType)
+        return object
+    }
+    get entityType() { return new SocioCortexEntity(null, this._json.entityType) }
 
 }
 

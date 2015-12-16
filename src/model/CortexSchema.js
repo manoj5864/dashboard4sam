@@ -16,9 +16,9 @@ let schemaFunc = (cortexWorkspace) => {
                 name: {
                     type: GraphQLString
                 },
-                entity: {
+                entityType: {
                     description: 'Retrieve the related entity',
-                    type: entity
+                    type: entityClass
                 }
             }
         }
@@ -46,11 +46,20 @@ let schemaFunc = (cortexWorkspace) => {
                 type: new GraphQLList(entityClassReference),
                 resolve: async (root) => {
                     let attrDefs = (await root.details).attributeDefinitions
-                    return attrDefs.map((entry) => {
+                    let output = []
+                    for (let attr of attrDefs) {
+                        let details = await attr.details
+                        output.push(details)
+                    }
+                    return output.filter((entry) => {
+                        return (entry.attributeType == 'Link')
+                    }).map((entry) => {
                         return {
-                            name: 'test'
+                            name: entry.name,
+                            entity: entry.options.entityType
                         }
                     })
+
                     //let promises = await Promise.all(details.attributeDefinitions.map((entry) => {
                     //    return entry.details
                     //}))
