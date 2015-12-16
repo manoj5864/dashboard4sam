@@ -21,7 +21,7 @@ export class PlotlyBarChart extends PlotlyWrapper {
     }
 
     componentDidMount() {
-        let {xValues, yValues, width, height} = this.props
+        let {xValues, yValues, width, height, title} = this.props;
         let data = [
             {
                 x: xValues,
@@ -29,9 +29,10 @@ export class PlotlyBarChart extends PlotlyWrapper {
                 type: 'bar'
             }
         ];
-        let layout = {}
-        if (width) layout.width = width
-        if (height) layout.height = height
+        let layout = {};
+        if (width) layout.width = width;
+        if (height) layout.height = height;
+        if (title) layout.title = title
 
         Plotly.newPlot(this._element, data, layout);
     }

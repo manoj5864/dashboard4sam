@@ -10,12 +10,7 @@ export class InfoWindow extends React.Component {
 
     render() {
         return(
-            <PlotlyPieChart
-                values={[5,10,30]}
-                labels={['a','b','c']}
-            >
-
-            </PlotlyPieChart>
+            <div>Hello world!</div>
         )
     }
 }
