@@ -1,8 +1,8 @@
 import {mixin} from '../../util/mixin'
 import {TLoggable} from '../../util/logging/TLoggable'
-import {PlotlyBarChart} from '../graphs/plotly/PlotlyBarChart.jsx'
+import {PlotlyBarChart} from '../graphs/plotly/PlotlyBarChart'
 
-export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
+export class ComplexityStatsView extends mixin(React.Component, TLoggable) {
 
     constructor() {
         super()

@@ -8,6 +8,7 @@ import {schema} from './model/CortexSchema'
 // Pages
 import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
 import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
+import {ComplexityStatsView} from './ui/graphs/ComplexityStatsView'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 
 
@@ -44,6 +45,7 @@ class PageManager extends mixin(null, TLoggable) {
         this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.switchPage(<SankeyGraphPage />)  })
         this._pageElement.menuSpot.addItem('Treemap Diagram', () => { this.info("Testing") })
         this._pageElement.menuSpot.addItem('Statistics', () => { this.switchPage(<CompletenessStatsView />) })
+        this._pageElement.menuSpot.addItem('Complexity', () => { this.switchPage(<ComplexityStatsView />) })
 
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
