@@ -22,7 +22,7 @@ module.exports = (grunt) ->
           {src: ['./bower_components/jquery/dist/jquery.min.js'], dest: './out/js/jquery.js'}
           {src: ['./bower_components/react/react.min.js'], dest: './out/js/react.js'}
           {src: ['./bower_components/react/react-dom.min.js'], dest: './out/js/react-dom.js'}
-          {src: ['./bower_components/plotly/index.js'], dest: './out/js/plotly.js'}
+          {src: ['./bower_components/plotly/index.js'], dest: './test/js/plotly.js'}
         ]
       sam_dev:
         options:
@@ -131,3 +131,4 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-contrib-copy'
+  grunt.loadNpmTasks 'grunt-mocha-test'
