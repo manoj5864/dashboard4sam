@@ -30,55 +30,56 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
   render() {
     return (
         <div>
+          <h1>Dependencies Completeness Statistics</h1>
           <table>
             <tbody>
             <tr>
-              <td><PlotlyStackBarChart // Architecture Completeness Stats
-                  values1={[15,40,30]}
-                  values2={[5,20,30]}
+              <td><PlotlyStackBarChart
+                  values1={[15,5,0]}
+                  values2={[5,15,20]}
                   labels={['Elements','Decisions','Projects']}
                   name1='With'
                   name2='Without'
                   width="480"
                   height="400"
-                  title="Architecture Completeness Stats"
+                  title="Architecture"
               >
               </PlotlyStackBarChart></td>
-              <td><PlotlyStackBarChart // Requirements Completeness Stats
-                  values1={[45,40,30]}
-                  values2={[25,20,30]}
+              <td><PlotlyStackBarChart
+                  values1={[5,10,12]}
+                  values2={[15,10,8]}
                   labels={['TestCases', 'Projects', 'Person']}
                   name1='With'
                   name2='Without'
                   width="480"
                   height="400"
-                  title="Requirements Completeness Stats"
+                  title="Requirements"
               >
               </PlotlyStackBarChart></td>
               </tr>
             </tbody>
             <tbody>
             <tr>
-              <td><PlotlyStackBarChart // Decision Completeness Stats
+              <td><PlotlyStackBarChart
                   values1={[15]}
                   values2={[5]}
                   labels={['Requirements']}
                   name1='With'
                   name2='Without'
                   width="300"
-                  height="350"
-                  title="Decisions Completeness Stats"
+                  height="400"
+                  title="Decisions "
               >
               </PlotlyStackBarChart></td>
-              <td><PlotlyStackBarChart // Assignments Completeness Stats
-                  values1={[15,20]}
+              <td><PlotlyStackBarChart
+                  values1={[15,0]}
                   values2={[5,20]}
                   labels={['Persons', 'Tasks']}
                   name1='With'
                   name2='Without'
                   width="480"
                   height="400"
-                  title="Assignments Completeness Stats"
+                  title="Assignments"
               >
               </PlotlyStackBarChart></td>
             </tr>
