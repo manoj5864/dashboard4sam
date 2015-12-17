@@ -78,7 +78,7 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
                   name2='Without'
                   width="480"
                   height="400"
-                  title="Decisions Completeness Stats"
+                  title="Assignments Completeness Stats"
               >
               </PlotlyStackBarChart></td>
             </tr>
