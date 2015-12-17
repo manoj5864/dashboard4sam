@@ -1,3 +1,4 @@
+import {Form, FormControl} from '../../main/form/Form'
 
 let React = window.React
 
@@ -6,9 +7,20 @@ export class InfoWindow extends React.Component {
         super()
     }
 
+    _buildControls() {
+        debugger
+        this.props.attributes.map((entry) => {
+            return (
+                <FormControl name={entry.name}/>
+            )
+        })
+    }
+
     render() {
         return(
-            <div>Hello World!</div>
+            <Form>
+                {this._buildControls()}
+            </Form>
         )
     }
 }

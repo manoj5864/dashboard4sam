@@ -24,11 +24,15 @@ let schemaFunc = (cortexWorkspace) => {
         }
     })
 
-    let entityAttribute = new GraphQLObjectType({
-        name: 'EntityClassAttribute',
+    let entityTypeAttribute = new GraphQLObjectType({
+        name: 'EntityTypeClassAttribute',
         fields: {
             name: {
                 type: GraphQLString
+            },
+            type: {
+                type: GraphQLString,
+                resolve: (root) => root.attributeType
             }
         }
     })
@@ -41,6 +45,27 @@ let schemaFunc = (cortexWorkspace) => {
             },
             name: {
                 type: GraphQLString
+            },
+            attributes: {
+                type: new GraphQLList(entityTypeAttribute),
+                args: {
+                  name: {
+                      type: GraphQLString
+                  }
+                },
+                resolve: async (root, {name}) => {
+                    let attrDefs = (await root.details).attributeDefinitions
+                    let output = []
+                    for (let attr of attrDefs) {
+                        // Continue if there is a name check and it does not match
+                        if (name && !(attr.name.match(name))) continue
+                        let details = await attr.details
+                        output.push(details)
+                    }
+                    return output.filter((entry) => {
+                        return (entry.attributeType != 'Link')
+                    })
+                }
             },
             referencedBy: {
                 type: new GraphQLList(entityClassReference),
@@ -59,17 +84,6 @@ let schemaFunc = (cortexWorkspace) => {
                             entity: entry.options.entityType
                         }
                     })
-
-                    //let promises = await Promise.all(details.attributeDefinitions.map((entry) => {
-                    //    return entry.details
-                    //}))
-                    //console.log(promises)
-                    /*.filter(async (attributeDetails) => {
-                        // Filter for links
-                        let details = await attributeDetails
-                        return attributeDetails.attributeType == 'Link'
-                    })
-                    */
                 }
             },
             referencesTo: {

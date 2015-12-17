@@ -3,6 +3,7 @@ import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
 import {Modal} from '../../main/widgets/Modal'
 import {InfoWindow} from '../dialog/InfoWindow'
+import {app} from  '../../../Application'
 
 let React = window.React
 
@@ -38,8 +39,18 @@ class QueryBuilderReactElement extends React.Component {
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
 
-    _handleDoubleClick() {
-        Modal.show(<InfoWindow />)
+    async _handleDoubleClick() {
+        let entities = await app.socioCortexManager.executeQuery(`
+            query EntityAttributes {
+                type(id: "${this._refObject.id}") {
+                    attributes {
+                        name
+                        type
+                    }
+                }
+            }
+        `)
+        Modal.show(<InfoWindow attributes={entities.data.type[0].attributes} />)
     }
 
     constructor(reference) {

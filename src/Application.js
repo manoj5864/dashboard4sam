@@ -1,5 +1,6 @@
 import {mixin} from './util/mixin'
 import {TLoggable} from './util/logging/TLoggable'
+import {Enum} from './util/enum'
 import {Page} from './ui/main/Page'
 import {SocioCortexApi} from './service/api/SocioCortexApi'
 import {graphql} from 'graphql'
@@ -15,6 +16,31 @@ let $ = window.$
 let React = window.React
 let ReactDOM = window.ReactDOM
 
+export const StateDescriptors = Enum(
+    "PAGE_VISIBLE",
+    "PAGE_STATE"
+)
+
+class PageState {
+
+    constructor() {
+        this[StateDescriptors.PAGE_VISIBLE] = ''
+
+    }
+
+    set visiblePage(value) {
+        this[StateDescriptors.PAGE_VISIBLE] = value
+    }
+
+    toJSON() {
+        let json = {}
+        json[StateDescriptors.PAGE_VISIBLE] = this[StateDescriptors.PAGE_VISIBLE]
+
+        return JSON.stringify(json)
+    }
+
+}
+
 class PageManager extends mixin(null, TLoggable) {
     get currentHash() {
         return window.location.hash
@@ -25,17 +51,25 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     switchPage(page) {
+        this._pageState.visiblePage = page.name
         this._pageElement.contentSpot.currentPage = page
+        this._updateHash()
     }
 
     _handleHashChange(hash) {
         this.info(`Dealing with hash change ${hash}`)
     }
 
+    _updateHash() {
+        this.currentHash = window.btoa(this._pageState.toJSON())
+    }
+
     init() {
         // Check current hash
         let hash = this.currentHash
-        window.atob(hash)
+        //window.atob(hash)
+
+        this._pageState = new PageState()
 
         this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
 
