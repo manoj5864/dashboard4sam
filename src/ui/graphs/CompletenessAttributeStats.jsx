@@ -43,7 +43,7 @@ export class CompletenessAttributeStats extends mixin(React.Component, TLoggable
                   name2='Without'
                   width="480"
                   height="400"
-                  title="Attributes"
+                  title="Element Attributes"
               >
               </PlotlyStackBarChart></td>
               <td><PlotlyStackBarChart
