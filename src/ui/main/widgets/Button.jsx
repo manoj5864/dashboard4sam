@@ -9,9 +9,13 @@ export class Button extends mixin(React.Component, TLoggable){
         super()
     }
 
+    _buildClass() {
+        return this.props.className || "btn btn-default waves-effect"
+    }
+
     render() {
         return(
-            <button type="button" className="btn btn-default waves-effect" onClick={this.props.onClick}>{this.props.text}</button>
+            <button type="button" className={this._buildClass()} onClick={this.props.onClick}>{this.props.text}</button>
         )
     }
 }

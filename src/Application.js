@@ -7,7 +7,7 @@ import {graphql} from 'graphql'
 import {schema} from './model/CortexSchema'
 
 // Pages
-import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
+import {SankeyGraphPage} from './ui/graphs/sankey/SankeyGraph'
 import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 

@@ -6,19 +6,29 @@ export class FormControl extends React.Component {
         super()
     }
 
+    get value() {
+        return $(this._inputControl).val()
+    }
+
     get placeholder() {
         return this.props.placeholder || ''
     }
 
+    static getDefaultProps() {
+        return {
+            className: ''
+        }
+    }
+
     _buildInput() {
-        return (
-            <input type="text" placeholder={this.placeholder} className="form-control" />
+        return this.props.children || (
+            <input type="text" placeholder={this.placeholder} className="form-control" ref={(c) => this._inputControl = c} />
         )
     }
 
     render() {
         return (
-            <div className="form-group">
+            <div className={'form-group' + this.props.className}>
                 <label className="col-md-2 control-label">{this.props.name}</label>
                 <div className="col-md-10">
                     {this._buildInput()}
@@ -35,9 +45,16 @@ export class Form extends React.Component{
         super()
     }
 
+    static getDefaultProps() {
+        return {
+            className: ''
+        }
+    }
+
+
     render() {
         return (
-            <form className="form-horizontal">
+            <form className={'form-horizontal ' + this.props.className}>
                 {this.props.children}
             </form>
         )
