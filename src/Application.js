@@ -8,7 +8,9 @@ import {schema} from './model/CortexSchema'
 // Pages
 import {SankeyGraphPage} from './ui/graphs/SankeyGraph'
 import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
+import {DependenciesCompletenessStats} from './ui/graphs/DependenciesCompletenessStats'
 import {ComplexityStatsView} from './ui/graphs/ComplexityStatsView'
+import {CompletenessAttributeStats} from './ui/graphs/CompletenessAttributeStats'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 
 
@@ -44,7 +46,8 @@ class PageManager extends mixin(null, TLoggable) {
         this._pageElement.menuSpot.addItem('Query Builder', () => { this.switchPage(<QueryBuilder />)  })
         this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.switchPage(<SankeyGraphPage />)  })
         this._pageElement.menuSpot.addItem('Treemap Diagram', () => { this.info("Testing") })
-        this._pageElement.menuSpot.addItem('Statistics', () => { this.switchPage(<CompletenessStatsView />) })
+        this._pageElement.menuSpot.addItem('Dependencies Statistics', () => { this.switchPage(<DependenciesCompletenessStats />) })
+        this._pageElement.menuSpot.addItem('Attributes Statistics', () => { this.switchPage(<CompletenessAttributeStats />) })
         this._pageElement.menuSpot.addItem('Complexity', () => { this.switchPage(<ComplexityStatsView />) })
 
         $(document).ready(() => {
