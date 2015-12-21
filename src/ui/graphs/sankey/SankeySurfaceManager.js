@@ -4,7 +4,7 @@ import {SankeyNode} from './SankeyNode'
 
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
-    constructor(svg, {allowZooming = false, allowPanning = true, alignHorizontal = true, nodeList = []}) {
+    constructor(svg, {allowZooming = true, allowPanning = false, alignHorizontal = true, nodeList = []}) {
         super()
         this._svg = d3.select(svg)
         this._options = {
@@ -27,6 +27,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     }
 
     _dragNode(d) {
+        let width = d3.select(this._svg).attr('width')
+        let height = d3.select(this._svg).attr('height')
         d3.select(this).attr("transform",
             "translate(" + (
                 d.x = Math.max(0, Math.min(width - d.dx, d3.event.x))
@@ -40,6 +42,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     _update() {
         // Compute data
         let nodeList = []
+        let width = this._svg.attr('width')
         this._nodeList.forEach((it) => {
             nodeList.push(it)
         })
@@ -61,7 +64,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .layout(32);
 
         // Build the links
-        let links = this._svg.append("g").selectAll(".link")
+        let links = this._svg.select(".group").append("g").selectAll(".link")
             .data(connectionList)
             .enter().append("path")
             .attr("class", "link")
@@ -132,7 +135,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .filter(function (d) {
                 return d.x < width / 2;
             })
-            .attr("x", 6 + sankey.nodeWidth())
+            .attr("x", 6 + this._sankey.nodeWidth())
             .attr("text-anchor", "start");
     }
 
@@ -148,8 +151,10 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
+            .classed('group', true)
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")")
+
         // Apply Sankey
         this._sankey = d3.sankey()
             .nodeWidth(36)
@@ -158,7 +163,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         this._path = this._sankey.link()
 
         // Intialize node group
-        this._nodeGroup = d3.select(svg).append("g")
+        this._nodeGroup = d3.select(svg).select(".group").append("g")
         if (!this._options.alignHorizontal) {
             this._nodeGroup.attr("transform", "rotate(90)")
         }
@@ -166,13 +171,15 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         if (this._options.allowZooming) {
             let zoom = d3.behavior.zoom()
                 .on("zoom", () => {
-                    if (d3.event.sourceEvent.shiftKey){
-                        // TODO  the internal d3 state is still changing
-                        return false;
-                    } else{
-                        this._handleSurfaceZoom()
-                    }
-                    return true;
+                    //if (d3.event.sourceEvent.shiftKey){
+                    //    // TODO  the internal d3 state is still changing
+                    //    return false;
+                    //} else{
+                    //    //this._handleSurfaceZoom()
+                        console.log("this is zoomed!")
+                        d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
+                    //}
+                    //return true;
                 })
                 .on("zoomstart", () => {
                     if (!d3.event.sourceEvent.shiftKey) d3.select('body').style("cursor", "move");
