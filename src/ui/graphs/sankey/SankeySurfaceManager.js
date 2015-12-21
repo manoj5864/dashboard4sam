@@ -102,7 +102,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .attr("transform", function (d) {
                 return "translate(" + d.x + "," + d.y + ")";
             })
-            .call(nodeDragging);
+            //.call(nodeDragging);
         // Apply node styling
         nodes.append("rect")
             .attr("height", function (d) {
