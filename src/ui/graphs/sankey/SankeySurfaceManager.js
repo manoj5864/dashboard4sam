@@ -4,7 +4,7 @@ import {SankeyNode} from './SankeyNode'
 
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
-    constructor(svg, {allowZooming = true, allowPanning = false, alignHorizontal = true, nodeList = []}) {
+    constructor(svg, {allowZooming = true, allowPanning = false, alignHorizontal = false, nodeList = []}) {
         super()
         this._svg = d3.select(svg)
         this._options = {
@@ -146,7 +146,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         let height = d3.select(svg).attr('height')
         width = 1000 - margin.left - margin.right
         height = 500 - margin.top - margin.bottom
-        // Apply layout to canvase
+        // Apply layout to canvas
         d3.select(svg)
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
@@ -165,7 +165,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         // Intialize node group
         this._nodeGroup = d3.select(svg).select(".group").append("g")
         if (!this._options.alignHorizontal) {
-            this._nodeGroup.attr("transform", "rotate(90)")
+            d3.select(svg).select(".group").attr("transform", "rotate(90)")
         }
 
         if (this._options.allowZooming) {
@@ -176,8 +176,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                     //    return false;
                     //} else{
                     //    //this._handleSurfaceZoom()
-                        console.log("this is zoomed!")
-                        d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
+                        d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")rotate(90)")
                     //}
                     //return true;
                 })
