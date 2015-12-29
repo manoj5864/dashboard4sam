@@ -26,7 +26,7 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
 
   render() {
     return (
-        <svg width="600" height="1600" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+        <svg width="1000" height="800" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
         </svg>
     )
   }

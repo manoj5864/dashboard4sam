@@ -83,17 +83,17 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             });
 
         // Build the nodes
-        let nodeDragging = d3.behavior.drag()
-            .origin(function (d) {
-                return d;
-            })
-            .on("dragstart", function () {
-                this.parentNode.appendChild(this);
-            })
-            .on("drag", (d) => {
-                this._dragNode(d)
-                links.attr("d", path);
-            })
+        //let nodeDragging = d3.behavior.drag()
+        //    .origin(function (d) {
+        //        return d;
+        //    })
+        //    .on("dragstart", function () {
+        //        this.parentNode.appendChild(this);
+        //    })
+        //    .on("drag", (d) => {
+        //        this._dragNode(d)
+        //        links.attr("d", path);
+        //    })
 
         let nodes = this._nodeGroup.selectAll(".node")
             .data(nodeList)
@@ -115,10 +115,10 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .style("stroke", function (d) {
                 return d3.rgb(d.color).darker(2);
             })
-            .append("title")
-            .text(function (d) {
-                return d.name ;
-            });
+            //.append("title")
+            //.text(function (d) {
+            //    return d.name ;
+            //})
 
         // Apply the node text
         nodes.append("text")
@@ -136,7 +136,37 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                 return d.x < width / 2;
             })
             .attr("x", 6 + this._sankey.nodeWidth())
-            .attr("text-anchor", "start");
+            .attr("text-anchor", "start")
+
+
+        var div = d3.select(".card-box").append("group")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+        nodes.on("mouseover", (d) => {
+            div.transition()
+                .duration(200)
+                .style("opacity", .7);
+            div	.html("<center><b>" + d.name + "</b></center>"+ "For details: <a href=\"http://www.google.com/\"" +
+                " target=\"_blank\">Click here!</a>")
+                .style("left", (d3.event.pageX - 250) + "px")
+                .style("top", (d3.event.pageY - 100) + "px");
+        //}).on("mouseout", function() {
+        //    div.transition()
+        //        .duration(1000)
+        //        .style("opacity", 0);
+        })
+
+        d3.selectAll(".tooltip").on("mousemove", function() {
+            div.style("opacity", 1)
+            .style("background", "orange")
+            .style("color", "white");
+        }).on("mouseout", function() {
+            console.log("tooltip exits")
+            div.style("opacity", 0)
+
+        })
+
+
     }
 
     _init(svg) {
@@ -144,16 +174,16 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         let margin = {top: 1, right: 1, bottom: 6, left: 1}
         let width = d3.select(svg).attr('width')
         let height = d3.select(svg).attr('height')
-        width = 1000 - margin.left - margin.right
-        height = 500 - margin.top - margin.bottom
+        width = width - margin.left - margin.right
+        height = height - margin.top - margin.bottom
         // Apply layout to canvas
         d3.select(svg)
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .classed('group', true)
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")")
+            //.attr("transform",
+            //    "translate(" + margin.left + "," + margin.top + ")")
 
         // Apply Sankey
         this._sankey = d3.sankey()
@@ -165,7 +195,11 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         // Intialize node group
         this._nodeGroup = d3.select(svg).select(".group").append("g")
         if (!this._options.alignHorizontal) {
-            d3.select(svg).select(".group").attr("transform", "rotate(90)")
+            d3.select(svg).select(".group").attr("transform",
+                "translate(" + width/2 + "," + margin.top + ")rotate(90)")
+        } else {
+            d3.select(svg).select(".group").attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")")
         }
 
         if (this._options.allowZooming) {
@@ -176,7 +210,11 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                     //    return false;
                     //} else{
                     //    //this._handleSurfaceZoom()
+                    if (!this._options.alignHorizontal) {
                         d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")rotate(90)")
+                    } else {
+                        d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
+                    }
                     //}
                     //return true;
                 })
