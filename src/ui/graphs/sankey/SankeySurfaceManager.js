@@ -142,11 +142,13 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         var div = d3.select(".card-box").append("group")
             .attr("class", "tooltip")
             .style("opacity", 0)
+            .style("background", "orange")
+            .style("color", "white")
         nodes.on("mouseover", (d) => {
             div.transition()
                 .duration(200)
                 .style("opacity", .7);
-            div	.html("<center><b>" + d.name + "</b></center>"+ "For details: <a href=\"http://www.google.com/\"" +
+            div	.html("<center><b>" + d.name + "</b></center>"+ "For details: <a href=\"" + d.url + "\"" +
                 " target=\"_blank\">Click here!</a>")
                 .style("left", (d3.event.pageX - 250) + "px")
                 .style("top", (d3.event.pageY - 100) + "px");
@@ -161,9 +163,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .style("background", "orange")
             .style("color", "white");
         }).on("mouseout", function() {
-            console.log("tooltip exits")
             div.style("opacity", 0)
-
         })
 
 

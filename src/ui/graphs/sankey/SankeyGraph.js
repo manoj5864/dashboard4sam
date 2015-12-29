@@ -17,8 +17,9 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
   }
 
   componentDidMount() {
-    let node1 = new SankeyNode('Test')
-    let node2 = new SankeyNode('Test2')
+    // Put conditions and set colors based on the type of entities. e.g. Architecture = red
+    let node1 = new SankeyNode('Test', 'http://www.test1.com/pdf', 'red')
+    let node2 = new SankeyNode('Test2', 'http://www.test2.com/pdf', 'blue')
     node1.addConnectedNode(node2)
 
     new SankeySurfaceManager(this._svgElement, {nodeList: [node1,node2]})

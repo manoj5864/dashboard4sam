@@ -27,7 +27,7 @@ export class SankeyNode {
     }
 
     get color() {
-        return 'green'
+        return this._color
     }
 
     get connectedNodes() {
@@ -38,10 +38,16 @@ export class SankeyNode {
         return this._title
     }
 
-    constructor(title = 'Unknown') {
+    get url() {
+        return this._url
+    }
+
+    constructor(title = 'Unknown', url = 'Not provided', color = 'green') {
         this._id = uuid.v1()
         this._title = title
         this._targets = []
+        this._url = url
+        this._color = color
     }
 
 }

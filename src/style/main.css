@@ -2089,11 +2089,9 @@ div.tooltip {
     height: 36px;
     padding: 2px;
     font: 12px sans-serif;
-    background: orange !important;
     border: 2px;
     border-radius: 8px;
     pointer-events: none;
-    color: white !important;
     transition: height 2s;
 }
 
