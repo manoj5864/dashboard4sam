@@ -42,12 +42,17 @@ export class SankeyNode {
         return this._url
     }
 
-    constructor(title = 'Unknown', url = 'Not provided', color = 'green') {
+    get instanceName() {
+        return this._instanceName
+    }
+
+    constructor(instanceName, title = 'Unknown', url = 'Not provided', color = 'green') {
         this._id = uuid.v1()
         this._title = title
         this._targets = []
         this._url = url
         this._color = color
+        this._instanceName = instanceName
     }
 
 }

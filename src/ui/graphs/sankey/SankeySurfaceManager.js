@@ -1,6 +1,8 @@
 import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
 import {SankeyNode} from './SankeyNode'
+import {legend} from '../util/d3-legend.js'
+
 
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
@@ -45,7 +47,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     this._sankey.relayout()
   }
 
-  _update() {
+  _update(svg) {
     // Compute data
     let nodeList = []
     let width = this._svg.attr('width')
@@ -113,6 +115,9 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     //.call(nodeDragging);
     // Apply node styling
     nodes.append("rect")
+        .attr("class", function (d) {
+          return d.instanceName
+        })
         .attr("height", function (d) {
           return d.dy;
         })
@@ -137,8 +142,19 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         })
         .attr("text-anchor", "start")
         .style("fill", "white")
+        .attr("data-legend", function (d) {
+          return d.instanceName
+        })
+        .attr("data-legend-color", function (d) {
+          return d.color
+        })
 
-
+    // Legend
+    d3.select(svg).select(".legend")
+        .attr("transform", "translate(" + (this._svg.attr('height') - 100)  +
+            "," + (this._svg.attr('width')/2) + ")")
+        .style("font-size", "12px")
+        .call(legend)
 
     var div = d3.select(".card-box").append("group")
         .attr("class", "tooltip")
@@ -177,6 +193,10 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     let height = d3.select(svg).attr('height')
     width = width - margin.left - margin.right
     height = height - margin.top - margin.bottom
+    // Apply legend
+    d3.select(svg).append('g')
+    .classed('legend', true)
+
     // Apply layout to canvas
     d3.select(svg)
         .attr("width", width + margin.left + margin.right)
@@ -232,6 +252,16 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
     }
 
-    this._update()
+
+
+
+    //setTimeout(function () {
+    //  legend
+    //      .style("font-size", "20px")
+    //      .attr("data-style-padding", 10)
+    //      .call(d3.legend)
+    //}, 1000)
+
+    this._update(svg)
   }
 }

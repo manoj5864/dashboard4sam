@@ -2099,3 +2099,13 @@ div.tooltip:hover {
     height: 160px;
 }
 
+
+.legend rect {
+    fill:white;
+    stroke:black;
+    opacity:0.8;
+    /*width: 150px;*/
+    /*height: 100px;*/
+    /*border: 0px;*/
+}
+
