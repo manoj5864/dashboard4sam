@@ -85,12 +85,22 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         .sort(function (a, b) {
           return b.dy - a.dy;
         });
+
+    links.on("mouseover", function() {
+      d3.select(this)
+          .style("stroke-opacity", .5)
+    }).on("mouseout", function() {
+      d3.select(this)
+          .style("stroke-opacity", .2)
+    })
+    ;
     // Apply link short descriptions
     links.append("title")
         .text(function (d) {
           return d.source.name + " -> " +
               d.target.name;
-        });
+        })
+
 
     // Build the nodes
     //let nodeDragging = d3.behavior.drag()
@@ -151,8 +161,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
     // Legend
     d3.select(svg).select(".legend")
-        .attr("transform", "translate(" + (this._svg.attr('height') - 100)  +
-            "," + (this._svg.attr('width')/2) + ")")
+        .attr("transform", "translate(" + (this._svg.attr('height') - 100) +
+            "," + (this._svg.attr('width') / 2) + ")")
         .style("font-size", "12px")
         .call(legend)
 
@@ -162,6 +172,19 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         .style("background", "orange")
         .style("color", "white")
     nodes.on("mouseover", (d) => {
+      nodesMouseOver(d)
+    }).on("mouseout", () => {
+      nodesMouseOut()
+    })
+
+    function nodesMouseOut() {
+      d3.selectAll("path")[0].forEach(function (x) {
+        d3.select(x)
+            .style("stroke-opacity", .2)
+      })
+    }
+
+    function nodesMouseOver(d) {
       div.transition()
           .duration(200)
           .style("opacity", .7);
@@ -169,11 +192,24 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
               " target=\"_blank\">Click here!</a>")
           .style("left", (d3.event.pageX - 250) + "px")
           .style("top", (d3.event.pageY - 100) + "px");
+
+      d3.selectAll("path")[0].forEach(function (x) {
+        var connectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
+
+        connectedNodes.forEach(function (nodeEntry) {
+          if (nodeEntry === d._title) {
+            d3.select(x)
+                .style("stroke-opacity", .5)
+          }
+        })
+
+      })
       //}).on("mouseout", function() {
       //    div.transition()
       //        .duration(1000)
       //        .style("opacity", 0);
-    })
+
+    }
 
     d3.selectAll(".tooltip").on("mousemove", function () {
       div.style("opacity", 1)
@@ -195,7 +231,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     height = height - margin.top - margin.bottom
     // Apply legend
     d3.select(svg).append('g')
-    .classed('legend', true)
+        .classed('legend', true)
 
     // Apply layout to canvas
     d3.select(svg)
@@ -251,8 +287,6 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     if (this._options.allowPanning) {
 
     }
-
-
 
 
     //setTimeout(function () {
