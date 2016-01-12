@@ -85,10 +85,6 @@ let schemaFunc = (cortexWorkspace) => {
                         }
                     })
                 }
-            },
-            referencesTo: {
-                type: new GraphQLList(entityClassReference),
-                resolve: () => null
             }
         }
     })
@@ -106,6 +102,12 @@ let schemaFunc = (cortexWorkspace) => {
             },
             name: {
                 type: GraphQLString
+            },
+            relatedTo: {
+                type: () => entityList,
+                resolve: (root, {name}) => {
+
+                }
             }
         }
     })
@@ -126,7 +128,15 @@ let schemaFunc = (cortexWorkspace) => {
                           defaultValue: null
                       }
                     },
-                    resolve: (root, {id}) => cortexWorkspace.getEntities()
+                    resolve: async (root, {id, type}) => {
+                        // No restrictions were requested
+                        if (!(id || type)) { return cortexWorkspace.getEntities() }
+                        let entities = await cortexWorkspace.getEntities()
+                        entities.filter((entity) => {
+
+                            return false;
+                        });
+                    }
                 },
 
                 type: {
