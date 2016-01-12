@@ -109,6 +109,10 @@ class SocioCortexEntity {
         this._json = json
     }
 
+    get id() {
+        return this._json.id
+    }
+
     get name() {
         return this._json.name
     }
@@ -123,6 +127,10 @@ class SocioCortexEntity {
 
     _buildUrl(appendix) {
         return `/test`
+    }
+
+    toString() {
+        return this.name;
     }
 }
 
