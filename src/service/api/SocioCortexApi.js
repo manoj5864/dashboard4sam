@@ -109,6 +109,10 @@ class SocioCortexEntity {
         this._json = json
     }
 
+    get id() {
+        return this._json.id
+    }
+
     get name() {
         return this._json.name
     }
@@ -123,6 +127,10 @@ class SocioCortexEntity {
 
     _buildUrl(appendix) {
         return `/test`
+    }
+
+    toString() {
+        return this.name;
     }
 }
 
@@ -266,19 +274,28 @@ export class SocioCortexApi {
         this._username = username
         this._password = password
         this._relative_url = relative_url
+        this._requestCache = {};
     }
 
     async _makeRequest(url) {
         if (!url.match(/^http:\/\/.*/)) {
             url = this._relative_url + url
         }
-        return RequestHelper.get(
-            url,
-            {
-                username: this._username,
-                password: this._password
-            }
-        )
+
+        if (this._requestCache[url]) {
+            return this._requestCache[url];
+        } else {
+            let result = await RequestHelper.get(
+                url,
+                {
+                    username: this._username,
+                    password: this._password
+                }
+            )
+            this._requestCache[url] = result;
+            return result;
+        }
+
     }
 
     getWorkspace(id) {

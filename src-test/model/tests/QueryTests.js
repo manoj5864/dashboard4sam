@@ -68,14 +68,13 @@ describe('QueryLanguage', function() {
     it('should retrieve entities in relationship to other entities', async () => {
         let query = `
         query RelationShipQuery {
-            entity(name: 'Requirements') {
+            entity(type: "Requirement", attributes: [{name: "type", value: "Functional"}]) {
                 name
-                attribute(name: 'type', value: 'Functional')
 
-                relatedTo(name: 'Decisions') {
+                relatedTo(type: "Decision") {
                     name
 
-                    relatedTo(name: 'Architectures') {
+                    relatedTo(type: "Architecture") {
                         name
                     }
 
@@ -85,5 +84,6 @@ describe('QueryLanguage', function() {
         }
         `;
         let result = await graphql(schema(workspace), query);
+        console.log(result)
     })
 });

@@ -2,6 +2,7 @@ import {
     graphql,
     GraphQLSchema,
     GraphQLObjectType,
+    GraphQLInputObjectType,
     GraphQLList,
     GraphQLString,
     GraphQLInterfaceType
@@ -92,10 +93,14 @@ let schemaFunc = (cortexWorkspace) => {
 
     let entity = new GraphQLObjectType({
         name: 'Entity',
-        fields: {
+        fields:() => ({
             class: {
                 type: entityClass,
-                resolve: (root) => console.log(root)
+                resolve: async (root) => {
+                    let types = await cortexWorkspace.getEntityTypes()
+                    if (id) types = types.filter((it) => it.id == root.id)
+                    return types
+                }
             },
             id: {
                 type: GraphQLString
@@ -104,15 +109,43 @@ let schemaFunc = (cortexWorkspace) => {
                 type: GraphQLString
             },
             relatedTo: {
-                type: () => entityList,
-                resolve: (root, {name}) => {
+                type: new GraphQLList(entity),
+                args: {
+                    type: { type: GraphQLString }
+                },
+                resolve: async (root, {type}) => {
+                    // Discover attribute
+                    let query2 = `
+                        query EntityTypeQuery {
+                            type(name: "${type}") {
+                                referencedBy {
+                                    name
+                                    entityType {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    `
+                    let resx = await graphql(schemaFunc(cortexWorkspace), query2);
+                    debugger;
 
+                    let entityId = root.id;
+                    let query = `
+                        query EntityRelationQuery {
+                            entity(attributes: [{value: "${entityId}"}] ) {
+                                id
+                                name
+                            }
+                        }
+                    `;
+                    let res = await graphql(schemaFunc(cortexWorkspace), query);
+                    return res.data.entity;
                 }
             }
-        }
-    })
+        })
+    });
     let entityList = new GraphQLList(entity)
-
 
 
     let _entitySchema = new GraphQLSchema({
@@ -126,15 +159,40 @@ let schemaFunc = (cortexWorkspace) => {
                           description: 'ID of the entity to look for',
                           type: GraphQLString,
                           defaultValue: null
+                      },
+                      type: {
+                          description: 'Type of the entity',
+                          type: GraphQLString
+                      },
+                      attributes: {
+                          type: new GraphQLList(new GraphQLInputObjectType({
+                              name: 'EntityAttributeArgument',
+                              fields: {
+                                  name: { type: GraphQLString, defaultValue: null },
+                                  value: { type: GraphQLString }
+                              }
+                          }))
                       }
                     },
-                    resolve: async (root, {id, type}) => {
+                    resolve: async (root, {id, type, attributes}) => {
                         // No restrictions were requested
-                        if (!(id || type)) { return cortexWorkspace.getEntities() }
-                        let entities = await cortexWorkspace.getEntities()
-                        entities.filter((entity) => {
-
-                            return false;
+                        if (!(id || type || attributes)) { return cortexWorkspace.getEntities() }
+                        let entities = await cortexWorkspace.getEntities();
+                        return entities.filter((entity) => {
+                            if (type && !(entity.entityType.name == type)) {return false;}
+                            if (id && !(entity.id == id)) { return false; }
+                            if (attributes) {
+                                for (let a of attributes) {
+                                    let isQualified = entity.attributes.some((attr) => {
+                                        let val = (a.name && (attr.name == a.name)) ||
+                                            ((attr.value instanceof Array) ? (attr.value.indexOf(a.value) >= 0) : attr.value == a.value);
+                                        return val;
+                                    });
+                                    if (!isQualified)
+                                        return false;
+                                }
+                            }
+                            return true;
                         });
                     }
                 },
