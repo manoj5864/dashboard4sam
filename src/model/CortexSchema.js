@@ -70,15 +70,27 @@ let schemaFunc = (cortexWorkspace) => {
             },
             referencedBy: {
                 type: new GraphQLList(entityClassReference),
-                resolve: async (root) => {
+                args: {
+                  name: {type: GraphQLString}
+                },
+                resolve: async (root, {name}) => {
+                    // Get list of all attributes on this entity
                     let attrDefs = (await root.details).attributeDefinitions
+                    // Collect relevant entries in output variable
                     let output = []
+                    // Pull the exact definition of each attribute, otherwise
+                    // we can't determine if it is a Link
                     for (let attr of attrDefs) {
                         let details = await attr.details
                         output.push(details)
                     }
+                    // Now choose only attributes that qualify to be:
+                    // 1. To be of type Link
+                    // 2. Have a specific variable set, such as name
+                    // 3. Map to entityClassReferency type
                     return output.filter((entry) => {
-                        return (entry.attributeType == 'Link')
+                        let res = (entry.attributeType == 'Link')
+
                     }).map((entry) => {
                         return {
                             name: entry.name,
@@ -197,6 +209,7 @@ let schemaFunc = (cortexWorkspace) => {
                     }
                 },
 
+                // Retrieves a specific type from the backend
                 type: {
                     type: entityClassList,
                     args: {

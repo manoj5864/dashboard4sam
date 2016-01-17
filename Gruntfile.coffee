@@ -8,6 +8,7 @@ module.exports = (grunt) ->
         files: [
           {src: ['./bower_components/d3/d3.js'], dest: './test/js/d3.js'}
           {src: ['./bower_components/bootstrap/dist/js/bootstrap.js'], dest: './test/js/bootstrap.js'}
+          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/js/bootstrap-editable.js'], dest: './test/js/bootstrap-editable.js'}
           {src: ['./bower_components/jquery/dist/jquery.js'], dest: './test/js/jquery.js'}
           {src: ['./bower_components/react/react.js'], dest: './test/js/react.js'}
           {src: ['./bower_components/react/react-dom.js'], dest: './test/js/react-dom.js'}
@@ -19,6 +20,7 @@ module.exports = (grunt) ->
         files: [
           {src: ['./bower_components/d3/d3.min.js'], dest: './out/js/d3.js'}
           {src: ['./bower_components/bootstrap/dist/js/bootstrap.min.js'], dest: './out/js/bootstrap.js'}
+          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/js/bootstrap-editable.min.js'], dest: './out/js/bootstrap-editable.js'}
           {src: ['./bower_components/jquery/dist/jquery.min.js'], dest: './out/js/jquery.js'}
           {src: ['./bower_components/react/react.min.js'], dest: './out/js/react.js'}
           {src: ['./bower_components/react/react-dom.min.js'], dest: './out/js/react-dom.js'}
@@ -42,8 +44,10 @@ module.exports = (grunt) ->
         files: [
           # Bootstrap
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.min.css'], dest: './out/style/bootstrap.css'}
+          # Bootstrap Editable
+          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/css/bootstrap-editable.css'], dest: './out/style/bootstrap-editable.css'}
           # Main Style
-          {src : ['./src/style/main.css'], dest: './out/style/main.css'}
+          {src : ['./src/style/*.css'], dest: './out/style/', flatten: true, expand: true}
           # Images
           {expand: true, flatten: true, src: ['./resources/images/**'], dest: './out/images/'}
         ]
@@ -52,8 +56,10 @@ module.exports = (grunt) ->
           flatten: true
         files: [
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.css'], dest: './test/style/bootstrap.css'}
+          # Bootstrap Editable
+          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/css/bootstrap-editable.css'], dest: './test/style/bootstrap-editable.css'}
           # Main Style
-          {src : ['./src/style/main.css'], dest: './test/style/main.css'}
+          {src : ['./src/style/*.css'], dest: './test/style/', flatten: true, expand: true}
           # Images
           {expand: true, flatten: true, src: ['./resources/images/**'], dest: './test/images/'}
         ]

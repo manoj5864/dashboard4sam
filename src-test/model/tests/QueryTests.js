@@ -62,7 +62,6 @@ describe('QueryLanguage', function() {
             }
         `
         let result = await graphql(schema(workspace), query)
-        expect(result.data.type[0]).to.be('')
     })
 
     it('should retrieve entities in relationship to other entities', async () => {
@@ -73,11 +72,6 @@ describe('QueryLanguage', function() {
 
                 relatedTo(type: "Decision") {
                     name
-
-                    relatedTo(type: "Architecture") {
-                        name
-                    }
-
                 }
 
             }
