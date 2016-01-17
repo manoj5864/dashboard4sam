@@ -114,10 +114,26 @@ let schemaFunc = (cortexWorkspace) => {
                     type: { type: GraphQLString }
                 },
                 resolve: async (root, {type}) => {
+                    // Discover attribute
+                    let query2 = `
+                        query EntityTypeQuery {
+                            type(name: "${type}") {
+                                referencedBy {
+                                    name
+                                    entityType {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    `
+                    let resx = await graphql(schemaFunc(cortexWorkspace), query2);
+                    debugger;
+
                     let entityId = root.id;
                     let query = `
                         query EntityRelationQuery {
-                            entity(type: "${type}", ) {
+                            entity(attributes: [{value: "${entityId}"}] ) {
                                 id
                                 name
                             }
@@ -152,7 +168,7 @@ let schemaFunc = (cortexWorkspace) => {
                           type: new GraphQLList(new GraphQLInputObjectType({
                               name: 'EntityAttributeArgument',
                               fields: {
-                                  name: { type: GraphQLString },
+                                  name: { type: GraphQLString, defaultValue: null },
                                   value: { type: GraphQLString }
                               }
                           }))
@@ -160,14 +176,19 @@ let schemaFunc = (cortexWorkspace) => {
                     },
                     resolve: async (root, {id, type, attributes}) => {
                         // No restrictions were requested
-                        if (!(id || type)) { return cortexWorkspace.getEntities() }
+                        if (!(id || type || attributes)) { return cortexWorkspace.getEntities() }
                         let entities = await cortexWorkspace.getEntities();
                         return entities.filter((entity) => {
                             if (type && !(entity.entityType.name == type)) {return false;}
                             if (id && !(entity.id == id)) { return false; }
                             if (attributes) {
                                 for (let a of attributes) {
-                                    if (!entity.attributes.some((attr) => (attr.name == a.name) && (attr.value == a.value) ))
+                                    let isQualified = entity.attributes.some((attr) => {
+                                        let val = (a.name && (attr.name == a.name)) ||
+                                            ((attr.value instanceof Array) ? (attr.value.indexOf(a.value) >= 0) : attr.value == a.value);
+                                        return val;
+                                    });
+                                    if (!isQualified)
                                         return false;
                                 }
                             }
