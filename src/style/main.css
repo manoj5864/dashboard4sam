@@ -2109,3 +2109,7 @@ div.tooltip:hover {
     /*border: 0px;*/
 }
 
+.g .panel {
+    border: rgba(0, 0, 0, 0.50);
+}
+
