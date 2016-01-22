@@ -5,6 +5,7 @@ import {app} from  '../../Application'
 import 'babel-polyfill'
 import {GraphSurfaceManager} from './graph/GraphSurfaceManager'
 import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
+import {default as _} from 'lodash'
 
 let React = window.React
 let d3 = window.d3
@@ -15,7 +16,10 @@ let $ = window.$
 export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
     constructor() {
-        super()
+        super();
+        this.state = {
+            entityList: []
+        }
     }
 
     get name() {
@@ -40,22 +44,42 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     async componentDidMount() {
         this.debug('SVG element mounted, initializing D3 graph');
         this._surfaceManager = new GraphSurfaceManager(this._svgElement);
-        let entities = await this._getEntities();
-        this._initializeSurface(entities);
+        let entities = _.sortBy((await this._getEntities()).data.type, it=>it.name);
+        this.setState({entityList: entities});
     }
 
-    _initializeSurface(entities) {
-        if (entities.data.type.length > 0) {
-            let el = entities.data.type[0];
-            let qb = new QueryBuilderNodeElement(el);
-            this._surfaceManager.addNode(qb)
-        }
+    _addToSurface(entity) {
+        let qb = new QueryBuilderNodeElement(entity);
+        this._surfaceManager.addNode(qb);
+    }
+
+    _renderEntityList() {
+        return this.state.entityList.map(it => {
+           return (
+               <li><a href="#" onClick={ev=>this._addToSurface(it)}>{it.name}</a></li>
+           )
+        });
     }
 
     render() {
         return (
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
-            </svg>
+            <div>
+                <div className="navbar-custom">
+                    <div className="container">
+                        <ul className="navigation-menu">
+                            <li className="has-submenu">
+                                <a href="#">Add</a>
+                                <ul className="submenu">
+                                    {this._renderEntityList()}
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+                </svg>
+            </div>
         )
     }
 

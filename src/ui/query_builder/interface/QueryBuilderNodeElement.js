@@ -4,8 +4,9 @@ import {TLoggable} from '../../../util/logging/TLoggable'
 import {Modal} from '../../main/widgets/Modal'
 import {InfoWindow} from '../dialog/InfoWindow'
 import {app} from  '../../../Application'
+import {QueryUtils} from '../../../model/QueryUtils'
 
-let React = window.React
+let React = window.React;
 
 class QueryBuilderReactElement extends React.Component {
 
@@ -13,7 +14,8 @@ class QueryBuilderReactElement extends React.Component {
         super();
         this.state = {
             showAddProperty: false,
-            knownAttributes: []
+            knownAttributes: [],
+            amountOfElements: 0
         };
     }
 
@@ -24,12 +26,17 @@ class QueryBuilderReactElement extends React.Component {
             entityObject: {
                 id: null,
                 name: ''
-            }
+            },
+            entityObjectProvider: () => { return ['Abcde'] }
         }
     }
 
     componentWillMount() {
         this._refresh();
+    }
+
+    async _refreshAmount() {
+
     }
 
     async _refresh() {
@@ -45,11 +52,18 @@ class QueryBuilderReactElement extends React.Component {
             }
         `);
 
+        let entityAmount = QueryUtils.amountOfEntities({
+            type: this.props.entityObject.name
+        });
+
+
         // Set states
         let resultAttributes = await attributes;
-        resultAttributes.data.type[0].attributes;
-        console.log(resultAttributes);
-        //this.setState({knownAttributes: (await attributes).data.type.attributes});
+
+        this.setState({
+            knownAttributes: resultAttributes.data.type[0].attributes,
+            amountOfElements: await entityAmount
+        });
     };
 
     render() {
@@ -64,6 +78,8 @@ class QueryBuilderReactElement extends React.Component {
                         <tbody>
                             <tr>
                                 <td><select>{renderOptions()}</select></td>
+                            </tr>
+                            <tr>
                                 <td><input type="text" /></td>
                                 <td><button onClick={it=>this.setState({showAddProperty: false})}>+</button></td>
                             </tr>
@@ -81,11 +97,13 @@ class QueryBuilderReactElement extends React.Component {
           <div className="row" style={{width: '200px'}}>
             <div className="panel panel-border panel-custom">
                 <div className="panel-heading" style={{color: this.props.color}}>
-                    <h3 className="panel-title">{this.props.entityObject.name}</h3>
+                    <h3 className="panel-title">
+                        {this.props.entityObject.name}
+                    </h3>
                 </div>
                 <div className="panel-body">
                     <p>
-                        Amount:
+                        Amount: {this.state.amountOfElements}
                     </p>
                 </div>
                 <div className="panel-footer">
@@ -107,15 +125,17 @@ class QueryBuilderReactElement extends React.Component {
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
 
+    get entity() {
+        return this._refObject;
+    }
+
     constructor(reference) {
         super();
         this._refObject = reference;
-        this._applyReactElement(
-            <QueryBuilderReactElement
-                entityObject={this._refObject}
-                onDblClick={this._handleDoubleClick.bind(this)}
-            />
-        )
+        this._element = <QueryBuilderReactElement
+            entityObject={this._refObject}
+        />;
+        this._applyReactElement(this._element);
     }
 
 }

@@ -9,7 +9,9 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     // Behavior
     _dragMove(d) {
         // Check if we are dragging an arrow or a node
-        if (d instanceof NodeElement) {
+        if (this.state.shiftNodeDrag) {
+            this._dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this._graph[0][0])[0] + ',' + d3.mouse(this._graph[0][0])[1])
+        } else if (d instanceof NodeElement) {
             d.x += d3.event.dx
             d.y +=  d3.event.dy
         }
@@ -40,7 +42,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     }
 
     _initDragLine(graph) {
-        graph.append('svg:path')
+        return graph.append('svg:path')
             .attr('class', 'link dragline hidden')
             .attr('d', 'M0,0L0,0')
             .style('marker-end', 'url(#mark-end-arrow)');
@@ -86,12 +88,18 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     _handleNodeMouseDown(d) {
         // Show arrow for connection
-        d3.event.stopPropagation()
+        d3.event.stopPropagation();
         if (d3.event.shiftKey){
+            this.state.shiftNodeDrag = d3.event.shiftKey;
             this._dragLine
                 .classed('hidden', false)
                 .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
         }
+    }
+
+    _handleMouseUp(d) {
+        this.state.shiftNodeDrag = false;
+        this._dragLine.classed('hidden', true);
     }
 
     _update() {
@@ -106,8 +114,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
             .on('mouseover', (d) => {d._handleMouseOver()})
             .on('mouseout', (d) => {d._handleMouseOut()})
-            .on('mousedown', (d) => {this._handleNodeMouseDown(); d._handleMouseDown()})
-            .on('mouseup', (d) => {d._handleMouseUp()})
+            .on('mousedown', (d) => {this._handleNodeMouseDown(d); d._handleMouseDown()})
+            .on('mouseup', (d) => {this._handleMouseUp(d); d._handleMouseUp()})
             .on('dblclick', (d) => {d._handleDoubleClick()})
             .call(this._dragBehavior) // Apply drag
         newElements.append((d) => {
@@ -121,26 +129,28 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     _init(el) {
         this.debug('Initializing surface manager...')
         let width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
-            height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight
+            height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
-        this._svg = d3.select(el)
-        this._initMarkers()
+        this._svg = d3.select(el);
+        this._initMarkers();
 
         this._svg
             .on('mousedown', (d) => {})
-            .on('mouseup', (d) => {})
+            .on('mouseup', (d) => {});
 
         // Add grouping
-        this._graph = this._svg.append('g').classed('graphed', true)
-        this._configureSurfaceDragAndZoom()
+        this._graph = this._svg.append('g').classed('graphed', true);
+        this._configureSurfaceDragAndZoom();
 
-        this._dragLine = this._initDragLine(this._graph)
-        this._dragBehavior = this._configureDragBehavior()
+        this._dragLine = this._initDragLine(this._graph);
+        this._dragBehavior = this._configureDragBehavior();
 
         // Build elements
-        this._elements = this._graph.append('g').selectAll('g')
+        this._elements = this._graph.append('g').selectAll('g');
 
-        this._update()
+        this._paths = this._grap.append('g').selectAll('g');
+
+        this._update();
     }
 
     addNode(node) {
@@ -157,9 +167,13 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._update()
     }
 
-    constructor(element, existingNodes = null) {
+    constructor(element, existingNodes = null, connectionList = null) {
         super()
-        this.state = {nodeList: (existingNodes || [])}
+        this.state = {
+            nodeList: (existingNodes || []),
+            shiftNodeDrag: false,
+            pathList: []
+        };
         this._init(element)
     }
 
