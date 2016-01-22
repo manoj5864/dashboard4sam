@@ -225,9 +225,9 @@ let schemaFunc = (cortexWorkspace) => {
                         }
                     },
                     resolve: async (root, {id, name}) => {
-                        let types = await cortexWorkspace.getEntityTypes()
-                        if (id) types = types.filter((it) => it.id == id)
-                        if (name) types = types.filter((it) => id.name == name)
+                        let types = await cortexWorkspace.getEntityTypes();
+                        if (id) types = types.filter((it) => it.id == id);
+                        if (name) types = types.filter((it) => id.name == name);
                         return types
                     }
                 }
