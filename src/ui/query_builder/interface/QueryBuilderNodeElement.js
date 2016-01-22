@@ -1,4 +1,5 @@
 import {ReactNodeElement} from '../graph/ReactNodeElement'
+import {GraphReactComponent} from '../graph/GraphReactComponent'
 import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
 import {Modal} from '../../main/widgets/Modal'
@@ -8,7 +9,7 @@ import {QueryUtils} from '../../../model/QueryUtils'
 
 let React = window.React;
 
-class QueryBuilderReactElement extends React.Component {
+class QueryBuilderReactElement extends GraphReactComponent {
 
     constructor() {
         super();

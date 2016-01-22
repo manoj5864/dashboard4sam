@@ -12,8 +12,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         if (this.state.shiftNodeDrag) {
             this._dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this._graph[0][0])[0] + ',' + d3.mouse(this._graph[0][0])[1])
         } else if (d instanceof NodeElement) {
-            d.x += d3.event.dx
-            d.y +=  d3.event.dy
+            d.x += d3.event.dx;
+            d.y +=  d3.event.dy;
         }
         this._update()
     }
@@ -91,6 +91,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         d3.event.stopPropagation();
         if (d3.event.shiftKey){
             this.state.shiftNodeDrag = d3.event.shiftKey;
+            this.state.connectOperation.startNode = d;
             this._dragLine
                 .classed('hidden', false)
                 .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
@@ -98,18 +99,30 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     }
 
     _handleMouseUp(d) {
+        if (this.state.shiftNodeDrag) {
+            this.state.connectOperation.endNode = d;
+
+            this.state.connectionList.push({
+                from: this.state.connectOperation.startNode,
+                to: this.state.connectOperation.endNode,
+                path: null
+            });
+
+            // Clear connect operation
+            this.state.connectOperation.startNode = null;
+            this.state.connectOperation.endNode = null;
+        }
+
         this.state.shiftNodeDrag = false;
         this._dragLine.classed('hidden', true);
     }
 
     _update() {
-        this.debug('Updating surface elements...')
-
         // Render elements
-        this._elements = this._elements.data(this.state.nodeList, (d) => d.id)
-        this._elements.attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+        this._elements = this._elements.data(this.state.nodeList, (d) => d.id);
+        this._elements.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
         // Add the new nodes
-        let newElements = this._elements.enter().append('g')
+        let newElements = this._elements.enter().append('g');
         newElements
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
             .on('mouseover', (d) => {d._handleMouseOver()})
@@ -117,13 +130,30 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             .on('mousedown', (d) => {this._handleNodeMouseDown(d); d._handleMouseDown()})
             .on('mouseup', (d) => {this._handleMouseUp(d); d._handleMouseUp()})
             .on('dblclick', (d) => {d._handleDoubleClick()})
-            .call(this._dragBehavior) // Apply drag
+            .call(this._dragBehavior); // Apply drag
         newElements.append((d) => {
             return d._render()
-        })
+        });
+
+        // Update old paths
+        this._paths = this._paths.data(this.state.connectionList, (it) => `${it.from.id}-${it.to.id}`);
+        this._paths.style('marker-end', 'url(#end-arrow)')
+            //.classed();
+            .attr('d', (d) => {
+                return `M${d.from.x},${d.from.y}L${d.to.x},${d.to.y}`;
+            });
+
+        // Render the paths
+        this._paths.enter()
+            .append('path')
+            .style('marker-end', 'url(#end-arrow)')
+            .classed('link', true)
+            .attr('d', (d) => `M${d.from.x},${d.from.y}L${d.to.x},${d.to.y}`)
+            .on('mousedown', (d) => {});
 
         // Remove old elements
-        this._elements.exit().remove()
+        this._elements.exit().remove();
+        this._paths.exit().remove();
     }
 
     _init(el) {
@@ -148,14 +178,14 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         // Build elements
         this._elements = this._graph.append('g').selectAll('g');
 
-        this._paths = this._grap.append('g').selectAll('g');
+        this._paths = this._graph.append('g').selectAll('g');
 
         this._update();
     }
 
     addNode(node) {
         if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
-        this.state.nodeList.push(node)
+        this.state.nodeList.push(node);
         this._update()
     }
 
@@ -163,7 +193,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         nodes.forEach((node) => {
             if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
             this.state.nodeList.push(node)
-        })
+        });
         this._update()
     }
 
@@ -171,8 +201,15 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         super()
         this.state = {
             nodeList: (existingNodes || []),
+            connectionList: [],
+
             shiftNodeDrag: false,
-            pathList: []
+
+
+            connectOperation: {
+                startNode: null,
+                endNode: null
+            }
         };
         this._init(element)
     }

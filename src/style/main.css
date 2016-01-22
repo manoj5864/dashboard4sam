@@ -2113,3 +2113,24 @@ g .panel {
     border: 1px solid rgba(0, 0, 0, 0.50);
 }
 
+/*
+    SurfaceManager CSS
+*/
+path.link {
+    fill: none;
+    stroke: #333;
+    stroke-width: 6px;
+    cursor: default;
+}
+
+path.link:hover{
+    stroke: rgb(94, 196, 204);
+}
+
+path.link.hidden{
+    stroke-width: 0;
+}
+
+path.link.selected {
+    stroke: rgb(229, 172, 247);
+}
