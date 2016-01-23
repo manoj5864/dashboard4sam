@@ -5,7 +5,8 @@ import {
     GraphQLInputObjectType,
     GraphQLList,
     GraphQLString,
-    GraphQLInterfaceType
+    GraphQLInterfaceType,
+    GraphQLBoolean
 } from 'graphql';
 
 let schemaFunc = (cortexWorkspace) => {
@@ -23,23 +24,10 @@ let schemaFunc = (cortexWorkspace) => {
                 }
             }
         }
-    })
+    });
 
-    let entityTypeAttribute = new GraphQLObjectType({
-        name: 'EntityTypeClassAttribute',
-        fields: {
-            name: {
-                type: GraphQLString
-            },
-            type: {
-                type: GraphQLString,
-                resolve: (root) => root.attributeType
-            }
-        }
-    })
-
-    let entityClass = new GraphQLObjectType({
-        name: 'EntityClass',
+    let genericEntityTypeAttribute = new GraphQLInterfaceType({
+        name: 'GenericEntityTypeAttribute',
         fields: {
             id: {
                 type: GraphQLString
@@ -47,61 +35,96 @@ let schemaFunc = (cortexWorkspace) => {
             name: {
                 type: GraphQLString
             },
+            type: {
+                type: GraphQLString,
+                resolve: (root) => root.attributeType
+            }
+        },
+        resolveType: object => {
+            return object.attributeType !== 'Link' ? entityTypeAttribute : entityLinkTypeAttribute
+        }
+    });
+
+    let entityTypeAttribute = new GraphQLObjectType({
+        name: 'EntityTypeAttribute',
+        fields: {
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
+            type: {
+                type: GraphQLString,
+                resolve: (root) => root.attributeType
+            }
+        },
+        interfaces: [genericEntityTypeAttribute]
+    });
+
+    let entityLinkTypeAttribute = new GraphQLObjectType({
+        name: 'EntityLinkTypeAttribute',
+        fields: () => ({
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
+            type: {
+                type: GraphQLString,
+                resolve: (root) => root.attributeType
+            },
+            entity: {
+                type: entityClass,
+                resolve: (root) => root.options.entityType
+            }
+        }),
+        interfaces: [genericEntityTypeAttribute]
+    });
+
+    let entityClass = new GraphQLObjectType({
+        name: 'EntityClass',
+        fields: () => ({
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
             attributes: {
-                type: new GraphQLList(entityTypeAttribute),
+                type: new GraphQLList(entityLinkTypeAttribute),
                 args: {
-                  name: {
+                    name: {
                       type: GraphQLString
-                  }
+                    },
+                    includeLinks: {
+                      type: GraphQLBoolean,
+                      defaultValue: false
+                    },
+                    onlyLinks: {
+                        type: GraphQLBoolean,
+                        defaultValue: false
+                    }
                 },
-                resolve: async (root, {name}) => {
-                    let attrDefs = (await root.details).attributeDefinitions
-                    let output = []
+                resolve: async (root, {name, includeLinks, onlyLinks}) => {
+                    let attrDefs = (await root.details).attributeDefinitions;
+                    let output = [];
                     for (let attr of attrDefs) {
                         // Continue if there is a name check and it does not match
-                        if (name && !(attr.name.match(name))) continue
-                        let details = await attr.details
+                        if (name && !(attr.name.match(name))) continue;
+                        let details = await attr.details;
                         output.push(details)
                     }
-                    return output.filter((entry) => {
+                    if (onlyLinks) output = output.filter(entry => entry.attributeType == 'Link');
+                    if (!includeLinks) output =  output.filter((entry) => {
                         return (entry.attributeType != 'Link')
-                    })
-                }
-            },
-            referencedBy: {
-                type: new GraphQLList(entityClassReference),
-                args: {
-                  name: {type: GraphQLString}
-                },
-                resolve: async (root, {name}) => {
-                    // Get list of all attributes on this entity
-                    let attrDefs = (await root.details).attributeDefinitions
-                    // Collect relevant entries in output variable
-                    let output = []
-                    // Pull the exact definition of each attribute, otherwise
-                    // we can't determine if it is a Link
-                    for (let attr of attrDefs) {
-                        let details = await attr.details
-                        output.push(details)
-                    }
-                    // Now choose only attributes that qualify to be:
-                    // 1. To be of type Link
-                    // 2. Have a specific variable set, such as name
-                    // 3. Map to entityClassReferency type
-                    return output.filter((entry) => {
-                        let res = (entry.attributeType == 'Link')
-
-                    }).map((entry) => {
-                        return {
-                            name: entry.name,
-                            entity: entry.options.entityType
-                        }
-                    })
+                    });
+                    return output;
                 }
             }
-        }
-    })
-    let entityClassList = new GraphQLList(entityClass)
+    })});
+    let entityClassList = new GraphQLList(entityClass);
 
     let entity = new GraphQLObjectType({
         name: 'Entity',
@@ -109,8 +132,8 @@ let schemaFunc = (cortexWorkspace) => {
             class: {
                 type: entityClass,
                 resolve: async (root) => {
-                    let types = await cortexWorkspace.getEntityTypes()
-                    if (id) types = types.filter((it) => it.id == root.id)
+                    let types = await cortexWorkspace.getEntityTypes();
+                    if (id) types = types.filter((it) => it.id == root.id);
                     return types
                 }
             },
@@ -138,7 +161,7 @@ let schemaFunc = (cortexWorkspace) => {
                                 }
                             }
                         }
-                    `
+                    `;
                     let resx = await graphql(schemaFunc(cortexWorkspace), query2);
                     debugger;
 
@@ -157,7 +180,7 @@ let schemaFunc = (cortexWorkspace) => {
             }
         })
     });
-    let entityList = new GraphQLList(entity)
+    let entityList = new GraphQLList(entity);
 
 
     let _entitySchema = new GraphQLSchema({
@@ -222,10 +245,16 @@ let schemaFunc = (cortexWorkspace) => {
                             description: 'Name of the entity class',
                             type: GraphQLString,
                             defaultValue: null
+                        },
+                        idList: {
+                            description: 'List of IDs',
+                            type: new GraphQLList(GraphQLString),
+                            defaultValue: null
                         }
                     },
-                    resolve: async (root, {id, name}) => {
+                    resolve: async (root, {id, name, idList}) => {
                         let types = await cortexWorkspace.getEntityTypes();
+                        if (idList) types = types.filter(it => idList.indexOf(it.id) >= 0);
                         if (id) types = types.filter((it) => it.id == id);
                         if (name) types = types.filter((it) => id.name == name);
                         return types
@@ -233,8 +262,8 @@ let schemaFunc = (cortexWorkspace) => {
                 }
             }
         })
-    })
+    });
 
     return _entitySchema
-}
+};
 export {schemaFunc as schema}

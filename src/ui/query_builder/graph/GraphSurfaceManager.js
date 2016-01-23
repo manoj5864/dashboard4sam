@@ -4,6 +4,20 @@ import {NodeElement} from './NodeElement'
 import {ReactNodeElement} from './ReactNodeElement'
 export {NodeElement, ReactNodeElement}
 
+class ConnectionEventReceiver {
+    async handle({from, to}){}
+}
+
+class InformationEvent {
+    get type() {
+
+    }
+
+    constructor() {
+
+    }
+}
+
 export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     // Behavior
@@ -98,23 +112,36 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         }
     }
 
-    _handleMouseUp(d) {
-        if (this.state.shiftNodeDrag) {
-            this.state.connectOperation.endNode = d;
+    async _handleMouseUp(d) {
+        let dragActive = this.state.shiftNodeDrag;
 
-            this.state.connectionList.push({
-                from: this.state.connectOperation.startNode,
-                to: this.state.connectOperation.endNode,
-                path: null
-            });
-
-            // Clear connect operation
-            this.state.connectOperation.startNode = null;
-            this.state.connectOperation.endNode = null;
-        }
-
+        // Deactivate current dragging operation
         this.state.shiftNodeDrag = false;
         this._dragLine.classed('hidden', true);
+
+        if (dragActive) {
+            this.state.connectOperation.endNode = d;
+            let from = this.state.connectOperation.startNode;
+            let to = this.state.connectOperation.endNode;
+
+            // Only add connection if acknowledged
+            this.debug(`Waiting for response of ${this.state.events.connectionEvents.length} acknowledgements...`);
+            let promiseOfConnectionAck = await Promise.all(this.state.events.connectionEvents.map(it=>it({from:from, to:to})));
+            this.debug(`Received acknowledgements, State: ${promiseOfConnectionAck}`);
+
+            if (promiseOfConnectionAck.every(it=>it)) {
+                this.state.connectionList.push({
+                    from: from,
+                    to: to,
+                    path: null
+                });
+
+                // Clear connect operation
+                this.state.connectOperation.startNode = null;
+                this.state.connectOperation.endNode = null;
+                this._update();
+            }
+        }
     }
 
     _update() {
@@ -197,8 +224,17 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._update()
     }
 
+    registerConnectionEvent(cb) {
+        // Guarantee result
+        let customCb = async(...args) => {
+            let res = await cb.apply(null, args);
+            return (typeof res == 'boolean') ? res : true;
+        };
+        this.state.events.connectionEvents.push(customCb);
+    }
+
     constructor(element, existingNodes = null, connectionList = null) {
-        super()
+        super();
         this.state = {
             nodeList: (existingNodes || []),
             connectionList: [],
@@ -209,6 +245,11 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             connectOperation: {
                 startNode: null,
                 endNode: null
+            },
+
+            // Event Handlers
+            events: {
+                connectionEvents: []
             }
         };
         this._init(element)

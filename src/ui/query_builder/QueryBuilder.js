@@ -6,6 +6,7 @@ import 'babel-polyfill'
 import {GraphSurfaceManager} from './graph/GraphSurfaceManager'
 import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
+import {QueryUtils} from '../../model/QueryUtils'
 
 let React = window.React
 let d3 = window.d3
@@ -44,8 +45,24 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     async componentDidMount() {
         this.debug('SVG element mounted, initializing D3 graph');
         this._surfaceManager = new GraphSurfaceManager(this._svgElement);
+
+        // Request entities
         let entities = _.sortBy((await this._getEntities()).data.type, it=>it.name);
         this.setState({entityList: entities});
+
+        // Register connection event
+        /**
+         * from: {QueryBuilderNodeElement}
+         * to: {QueryBuilderNodeElement}
+         */
+        this._surfaceManager.registerConnectionEvent(async ({from, to}) => {
+
+            let fromEntity = from.entity;
+            let toEntity = to.entity;
+
+            let res = await QueryUtils.doTwoEntitiesRelate(fromEntity.id, toEntity.id);
+            return res ? true : false;
+        });
     }
 
     _addToSurface(entity) {

@@ -107,9 +107,14 @@ class SocioCortexManager extends mixin(null, TLoggable) {
         return this._cortexClient
     }
 
-    executeQuery(query) {
-        this.debug(`Executing query: ${query}`)
-        return graphql(schema(this._workspace), query)
+    async executeQuery(query) {
+        this.debug(`Executing query: ${query}`);
+        try {
+            return await graphql(schema(this._workspace), query);
+        } catch (ex) {
+            this.error("Error occured in GraphQL execution");
+            console.log(ex);
+        }
     }
 
     init() {
