@@ -3,7 +3,6 @@ import {TLoggable} from '../../util/logging/TLoggable'
 import {Menu} from './Menu'
 import {Topbar} from './Topbar'
 import {Content} from './Content'
-import {Modal} from '../../ui/graphs/util/Modal'
 
 let React = window.React
 

@@ -7,6 +7,7 @@ import {app} from  '../../../Application'
 import {QueryUtils} from '../../../model/QueryUtils'
 import {Modal} from '../../../ui/main/widgets/Modal'
 import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
+import {EntityTypeDetails} from '../../../ui/query_builder/dialog/EntityTypeDetails'
 
 let React = window.React;
 
@@ -133,20 +134,24 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     _handleDoubleClick() {
         const name = this._refObject.name;
+        const id = this._refObject.id;
         const title = ['Details for EntityType ', <strong>{name}</strong>];
+        const firstTab = (
+            <EntityTypeDetails id={id} name={name} />
+        );
+
         const wrappedTabs = [
-            new TabWrapper('Entities', 0, <div>test1</div>),
-            new TabWrapper('Statistics', null, <div>test2</div>)
+            new TabWrapper('Entities', 0, firstTab),
+            new TabWrapper('Statistics', null, <div>Statistics</div>)
         ];
+
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
 
     constructor(reference) {
         super();
         this._refObject = reference;
-        this._element = <QueryBuilderReactElement
-            entityObject={this._refObject}
-        />;
+        this._element = <QueryBuilderReactElement entityObject={this._refObject} />;
         this._applyReactElement(this._element);
     }
 
