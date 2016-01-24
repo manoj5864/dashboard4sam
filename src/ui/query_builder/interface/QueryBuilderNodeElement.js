@@ -2,10 +2,11 @@ import {ReactNodeElement} from '../graph/ReactNodeElement'
 import {GraphReactComponent} from '../graph/GraphReactComponent'
 import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
-import {Modal} from '../../main/widgets/Modal'
 import {InfoWindow} from '../dialog/InfoWindow'
 import {app} from  '../../../Application'
 import {QueryUtils} from '../../../model/QueryUtils'
+import {Modal} from '../../../ui/main/widgets/Modal'
+import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
 
 let React = window.React;
 
@@ -128,6 +129,16 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     get entity() {
         return this._refObject;
+    }
+
+    _handleDoubleClick() {
+        const name = this._refObject.name;
+        const title = ['Details for EntityType ', <strong>{name}</strong>];
+        const wrappedTabs = [
+            new TabWrapper('Entities', 0, <div>test1</div>),
+            new TabWrapper('Statistics', null, <div>test2</div>)
+        ];
+        Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
 
     constructor(reference) {

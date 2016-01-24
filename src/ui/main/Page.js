@@ -3,6 +3,7 @@ import {TLoggable} from '../../util/logging/TLoggable'
 import {Menu} from './Menu'
 import {Topbar} from './Topbar'
 import {Content} from './Content'
+import {Modal} from '../../ui/graphs/util/Modal'
 
 let React = window.React
 
@@ -24,6 +25,7 @@ export class Page extends mixin(React.Component, TLoggable) {
         return (
             <div id="wrapper">
                 <Topbar />
+                <div id="modalMountpoint"></div>
                 <Menu ref={c => this._menuSpot = c}/>
                 <Content ref={c => this._contentSpot = c} />
             </div>

@@ -34,7 +34,6 @@ export class QueryUtils {
                 }
             }
         `);
-        debugger;
         let res = objects.data.type.map(typeSource => {
             let foundRelations = typeSource.attributes.filter(relation=>idCollection.indexOf(relation.entity.id) >= 0);
             let nonSelfRelations = foundRelations.filter(relation=>relation.entity.id != typeSource.id);
