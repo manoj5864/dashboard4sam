@@ -5,21 +5,18 @@ import {Page} from './ui/main/Page'
 import {SocioCortexApi} from './service/api/SocioCortexApi'
 import {graphql} from 'graphql'
 import {schema} from './model/CortexSchema'
+import {default as store} from 'store'
+import {LoginWindow} from './ui/main/windows/LoginWindow'
 
 // Pages
 import {SankeyGraphPage} from './ui/graphs/sankey/SankeyGraph'
 import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 
-
-let $ = window.$
-let React = window.React
-let ReactDOM = window.ReactDOM
-
 export const StateDescriptors = Enum(
     "PAGE_VISIBLE",
     "PAGE_STATE"
-)
+);
 
 class PageState {
 
@@ -51,8 +48,8 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     switchPage(page) {
-        this._pageState.visiblePage = page.name
-        this._pageElement.contentSpot.currentPage = page
+        this._pageState.visiblePage = page.name;
+        this._pageElement.contentSpot.currentPage = page;
         this._updateHash()
     }
 
@@ -69,15 +66,9 @@ class PageManager extends mixin(null, TLoggable) {
         let hash = this.currentHash
         //window.atob(hash)
 
-        this._pageState = new PageState()
+        this._pageState = new PageState();
 
         this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
-
-        // Add pages
-        this._pageElement.menuSpot.addItem('Query Builder', () => { this.switchPage(<QueryBuilder />)  })
-        this._pageElement.menuSpot.addItem('Sankey Diagram', () => { this.switchPage(<SankeyGraphPage />)  })
-        this._pageElement.menuSpot.addItem('Treemap Diagram', () => { this.info("Testing") })
-        this._pageElement.menuSpot.addItem('Statistics', () => { this.switchPage(<CompletenessStatsView />) })
 
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
@@ -87,43 +78,78 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     constructor() {
-        super()
-        this.init()
+        super();
+        this.init();
     }
 
 }
 
 class SocioCortexManager extends mixin(null, TLoggable) {
     constructor() {
-        super()
-        this.init()
+        super();
     }
 
-    get workspace() {
-        return this._workspace
+    async _getClient() {
+        if (!this._cortexClient) {
+            let login = await this._getUserLogin();
+            this._cortexClient = new SocioCortexApi(
+                login.username,
+                login.password,
+                'http://vmmatthes21.informatik.tu-muenchen.de/api/v1'
+            );
+        }
+        return this._cortexClient;
     }
 
-    get client() {
-        return this._cortexClient
+    async _getWorkspace() {
+        return (await this._getClient()).getWorkspace('16eh5j1cwrrny');
     }
 
-    async executeQuery(query) {
+    async _getUserLogin() {
+        if (this._loginData) {
+            // Login is in progress
+            if (this._loginData instanceof Promise) await this._loginData;
+            return this._loginData;
+        }
+
+        if (store.enabled) {
+            let storeLoginData = store.get('login');
+            if (storeLoginData && storeLoginData.username && storeLoginData.password) {
+                this._loginData = {
+                    username: storeLoginData.username,
+                    password: storeLoginData.password
+                }
+            }
+        } else {
+            this.warn(`Warning: Local Storage is not enabled`);
+            this.warn(`It will not be possible to persist login data`);
+        }
+
+        if (!this._loginData) {
+            // Show login screen
+            this._loginData = LoginWindow.getLoginDetails();
+
+            if (store.enabled) {
+                store.set('login', await this._loginData);
+            }
+        }
+
+        // Will return null if not set
+        return this._loginData;
+    }
+
+    async getUserDetails() {
+        return (await this._getClient()).getUser();
+    }
+
+    async executeQuery(query, args = null) {
         this.debug(`Executing query: ${query}`);
         try {
-            return await graphql(schema(this._workspace), query);
+            return await graphql(schema(await this._getWorkspace()), query, args);
         } catch (ex) {
             this.error("Error occured in GraphQL execution");
             console.log(ex);
         }
-    }
-
-    init() {
-        this._cortexClient = new SocioCortexApi(
-            'sayan.mnit@gmail.com',
-            '16rz3ulpit60k',
-            'http://vmmatthes21.informatik.tu-muenchen.de/api/v1'
-        )
-        this._workspace = this._cortexClient.getWorkspace('16eh5j1cwrrny')
     }
 }
 
@@ -131,7 +157,7 @@ class SocioCortexManager extends mixin(null, TLoggable) {
 export class ApplicationContext extends mixin(null, TLoggable) {
 
     constructor() {
-        super()
+        super();
         this._managerRegistry = {}
     }
 
@@ -145,12 +171,13 @@ export class ApplicationContext extends mixin(null, TLoggable) {
 
     start() {
         // Register manager
-        this.info('Starting application context...')
+        this.info('Starting application context...');
 
-        this._managerRegistry.pageManager = new PageManager()
-        this._managerRegistry.cortexManager = new SocioCortexManager()
+        this._managerRegistry.cortexManager = new SocioCortexManager();
+        this._managerRegistry.pageManager = new PageManager();
+
     }
 }
 
-let applicationInstance = new ApplicationContext()
+let applicationInstance = new ApplicationContext();
 export {applicationInstance as app}

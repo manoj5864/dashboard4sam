@@ -267,6 +267,19 @@ class SocioCortexEntitytype {
     }
 }
 
+class SocioCortexUser {
+
+    get name() { return this._json.name; }
+    get id() { return this._json.id; }
+    get pictureUrl() { return this._client._buildUrl(`/users/${this.id}/picture`) }
+
+    constructor(json, client) {
+        this._json = json;
+        this._client = client;
+    }
+
+}
+
 
 export class SocioCortexApi {
 
@@ -275,6 +288,10 @@ export class SocioCortexApi {
         this._password = password
         this._relative_url = relative_url
         this._requestCache = {};
+    }
+
+    _buildUrl(urlPart) {
+        return this._relative_url + urlPart;
     }
 
     async _makeRequest(url) {
@@ -301,5 +318,11 @@ export class SocioCortexApi {
     getWorkspace(id) {
         if (!id.match(/[\w]+/)) { throw new Error('Invalid workspace id provided') }
         return new SocioCortexWorkspace(this, id)
+    }
+
+    async getUser(id = null) {
+        const url = '/users/me';
+        let userData = await this._makeRequest(url);
+        return new SocioCortexUser(userData, this);
     }
 }

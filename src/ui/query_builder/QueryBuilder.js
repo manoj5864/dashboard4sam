@@ -8,10 +8,6 @@ import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
 import {QueryUtils} from '../../model/QueryUtils'
 
-let React = window.React
-let d3 = window.d3
-let $ = window.$
-
 //http://bl.ocks.org/cjrd/6863459
 
 export class QueryBuilder extends mixin(ContentPage, TLoggable) {
@@ -57,8 +53,8 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
          */
         this._surfaceManager.registerConnectionEvent(async ({from, to}) => {
 
-            let fromEntity = from.entity;
-            let toEntity = to.entity;
+            let fromEntity = from.entityType;
+            let toEntity = to.entityType;
 
             let res = await QueryUtils.doTwoEntitiesRelate(fromEntity.id, toEntity.id);
             return res ? true : false;

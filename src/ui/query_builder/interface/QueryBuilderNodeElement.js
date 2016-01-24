@@ -126,8 +126,16 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
 
-    get entity() {
+    get entityType() {
         return this._refObject;
+    }
+
+    get entities() {
+
+    }
+
+    addRelation(queryBuilderNodeElement) {
+
     }
 
     constructor(reference) {

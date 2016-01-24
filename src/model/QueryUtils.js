@@ -3,18 +3,21 @@ import {default as _} from 'lodash'
 
 export class QueryUtils {
 
-    static async amountOfEntities({
-        type = null,
-        attributeFilter = null
+    static async entities({
+        type = null
     }) {
-        let objects = await app.socioCortexManager.executeQuery(`
+        let object = await app.socioCortexManager.executeQuery(`
             query EntitiesForType {
                 entity(type: "${type}") {
                     id
                 }
             }
         `);
-        return objects.data.entity.length;
+        return object.data;
+    }
+
+    static async amountOfEntities(...args) {
+        return (await QueryUtils.entities.apply(null, args)).entity.length;
     }
 
     static async doTwoEntitiesRelate(id1, id2) {
@@ -34,7 +37,6 @@ export class QueryUtils {
                 }
             }
         `);
-        debugger;
         let res = objects.data.type.map(typeSource => {
             let foundRelations = typeSource.attributes.filter(relation=>idCollection.indexOf(relation.entity.id) >= 0);
             let nonSelfRelations = foundRelations.filter(relation=>relation.entity.id != typeSource.id);

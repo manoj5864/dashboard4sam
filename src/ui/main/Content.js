@@ -66,7 +66,7 @@ export class Content extends mixin(React.Component, TLoggable){
 
     render() {
         return(
-            <div className="content-page">
+            <div className="content-page" style={{margin: '0px'}}>
                 <div className="content">
                     <div className="container">
                         <div className="row">

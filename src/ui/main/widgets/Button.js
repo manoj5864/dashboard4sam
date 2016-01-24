@@ -15,7 +15,7 @@ export class Button extends mixin(React.Component, TLoggable){
 
     render() {
         return(
-            <button type="button" className={this._buildClass()} onClick={this.props.onClick}>{this.props.text}</button>
+            <button type="button" style={this.props.style} className={this._buildClass()} onClick={this.props.onClick}>{this.props.text}</button>
         )
     }
 }
