@@ -6,7 +6,8 @@ import {
     GraphQLList,
     GraphQLString,
     GraphQLInterfaceType,
-    GraphQLBoolean
+    GraphQLBoolean,
+    GraphQLNonNull
 } from 'graphql';
 
 let schemaFunc = (cortexWorkspace) => {
@@ -126,6 +127,38 @@ let schemaFunc = (cortexWorkspace) => {
     })});
     let entityClassList = new GraphQLList(entityClass);
 
+    let attribute = new GraphQLObjectType({
+       name: 'Attribute',
+        fields: () => ({
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
+            value: {
+                type: new GraphQLList(GraphQLString)
+            }
+        })
+    });
+    let attributeList = new GraphQLList(attribute);
+
+    let attributeLink = new GraphQLObjectType({
+        name: 'AttributeLink',
+        fields: () => ({
+            id: {
+                type: GraphQLString
+            },
+            name: {
+                type: GraphQLString
+            },
+            value: {
+                type: entityList
+            }
+        })
+    });
+    let attributeLinkList = new GraphQLList(attributeLink);
+
     let entity = new GraphQLObjectType({
         name: 'Entity',
         fields:() => ({
@@ -133,8 +166,7 @@ let schemaFunc = (cortexWorkspace) => {
                 type: entityClass,
                 resolve: async (root) => {
                     let types = await cortexWorkspace.getEntityTypes();
-                    if (id) types = types.filter((it) => it.id == root.id);
-                    return types
+                    return types.find(it => it.id === root.entityType.id)
                 }
             },
             id: {
@@ -142,6 +174,24 @@ let schemaFunc = (cortexWorkspace) => {
             },
             name: {
                 type: GraphQLString
+            },
+            attributes: {
+                type: attributeList,
+                args: {
+                    names: { type: new GraphQLList(GraphQLString) }
+                },
+                resolve: (root, {names}) => {
+                    return root.attributes.filter(attr => names.indexOf(attr.name) !== -1)
+                }
+            },
+            links: {
+                type: attributeLinkList,
+                args: {
+                    names: { type: new GraphQLList(GraphQLString) }
+                },
+                resolve: (root, {names}) => {
+                    return root.attributes.filter(attr => names.indexOf(attr.name) !== -1)
+                }
             },
             relatedTo: {
                 type: new GraphQLList(entity),
@@ -190,30 +240,35 @@ let schemaFunc = (cortexWorkspace) => {
                 entity: {
                     type: entityList,
                     args: {
-                      id: {
-                          description: 'ID of the entity to look for',
-                          type: GraphQLString,
-                          defaultValue: null
-                      },
-                      type: {
-                          description: 'Type of the entity',
-                          type: GraphQLString
-                      },
-                      attributes: {
-                          type: new GraphQLList(new GraphQLInputObjectType({
+                        id: {
+                            description: 'ID of the entity to look for',
+                            type: GraphQLString,
+                            defaultValue: null
+                        },
+                        typeId: {
+                            description: 'Type of the entity',
+                            type: GraphQLString
+                        },
+                        type: {
+                            description: 'Type of the entity',
+                            type: GraphQLString
+                        },
+                        attributes: {
+                            type: new GraphQLList(new GraphQLInputObjectType({
                               name: 'EntityAttributeArgument',
                               fields: {
                                   name: { type: GraphQLString, defaultValue: null },
                                   value: { type: GraphQLString }
                               }
-                          }))
-                      }
+                            }))
+                        }
                     },
-                    resolve: async (root, {id, type, attributes}) => {
+                    resolve: async (root, {id, typeId, type, attributes}) => {
                         // No restrictions were requested
-                        if (!(id || type || attributes)) { return cortexWorkspace.getEntities() }
+                        if (!(id || typeId || type || attributes)) { return cortexWorkspace.getEntities() }
                         let entities = await cortexWorkspace.getEntities();
                         return entities.filter((entity) => {
+                            if (typeId && !(entity.entityType.id == typeId)) {return false;}
                             if (type && !(entity.entityType.name == type)) {return false;}
                             if (id && !(entity.id == id)) { return false; }
                             if (attributes) {
@@ -256,7 +311,7 @@ let schemaFunc = (cortexWorkspace) => {
                         let types = await cortexWorkspace.getEntityTypes();
                         if (idList) types = types.filter(it => idList.indexOf(it.id) >= 0);
                         if (id) types = types.filter((it) => it.id == id);
-                        if (name) types = types.filter((it) => id.name == name);
+                        if (name) types = types.filter((it) => it.name == name);
                         return types
                     }
                 }

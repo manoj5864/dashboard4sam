@@ -150,10 +150,7 @@ class SocioCortexEntityAttribute {
     }
 
     get value() {
-        let values = this._json.values
-        if (values.length == 0) return null
-        if (values.length != 1) return values
-        return values[0]
+        return this._json.values;
     }
 
     get attributeDefinition() {
