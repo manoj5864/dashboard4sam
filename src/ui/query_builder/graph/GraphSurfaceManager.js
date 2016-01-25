@@ -46,6 +46,23 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     }
     //
 
+    _initKeyhooks() {
+        d3.select('body').on('keyup', () => {
+            let keyCode = d3.event.keyCode;
+            switch (keyCode) {
+                case 46:
+                    // Delete Key
+                    this.state.selectionList.forEach(it => {
+                        this.state.nodeList = this.state.nodeList.filter(n=>n != it);
+                        this.state.connectionList = this.state.connectionList.filter(c=> !(c.from == it || c.to == it));
+                    });
+                    this.state.selectionList.clear();
+                    break;
+            }
+            this._update();
+        })
+    }
+
     _initMarkers() {
         let defs = this._svg.append('svg:defs');
         defs.append('svg:marker')
@@ -236,6 +253,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._elements = this._graph.append('g').selectAll('g');
 
         this._paths = this._graph.append('g').selectAll('g');
+
+        this._initKeyhooks();
 
         this._update();
     }
