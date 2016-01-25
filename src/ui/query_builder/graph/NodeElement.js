@@ -23,6 +23,10 @@ export class NodeElement extends mixin(null, TLoggable) {
         this._y = val
     }
 
+    _setSelected(val) {
+        this._state.isSelected = val;
+    }
+
     _handleMouseDown(d3node, d) {
         d3.event.stopPropagation()
         if (d3.event.shiftKey){
@@ -63,5 +67,9 @@ export class NodeElement extends mixin(null, TLoggable) {
         this._x = 0
         this._y = 0
         this._title = title
+
+        this._state = {
+            isSelected: false
+        }
     }
 }

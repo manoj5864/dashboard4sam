@@ -20,6 +20,19 @@ class InformationEvent {
 
 export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
+    state() {
+        return {
+            unconnnectedNodes: () => {
+                let res = [];
+                for (let n of this.state.nodeList) {
+                    if (!this.state.connectionList.some((it) => { return (it.from == n) || (it.to == n) }))
+                        res.push(n);
+                }
+                return res;
+            }
+        }
+    }
+
     // Behavior
     _dragMove(d) {
         // Check if we are dragging an arrow or a node
@@ -112,6 +125,22 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         }
     }
 
+    _handleMouseClick(d) {
+        // Is already selected?
+        if (d3.event.ctrlKey) {
+            let isSelected = this.state.selectionList.has(d);
+            if (isSelected) {
+                // Deselect
+                this.state.selectionList.delete(d);
+                d._setSelected(false);
+            } else {
+                // Select
+                this.state.selectionList.add(d);
+                d._setSelected(true);
+            }
+        }
+    }
+
     async _handleMouseUp(d) {
         let dragActive = this.state.shiftNodeDrag;
 
@@ -156,6 +185,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             .on('mouseout', (d) => {d._handleMouseOut()})
             .on('mousedown', (d) => {this._handleNodeMouseDown(d); d._handleMouseDown()})
             .on('mouseup', (d) => {this._handleMouseUp(d); d._handleMouseUp()})
+            .on('click', (d) => {this._handleMouseClick(d);})
             .on('dblclick', (d) => {d._handleDoubleClick()})
             .call(this._dragBehavior); // Apply drag
         newElements.append((d) => {
@@ -238,6 +268,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this.state = {
             nodeList: (existingNodes || []),
             connectionList: [],
+            selectionList: new Set(),
 
             shiftNodeDrag: false,
 

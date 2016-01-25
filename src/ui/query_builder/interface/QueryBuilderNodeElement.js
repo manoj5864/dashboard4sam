@@ -18,7 +18,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
         this.state = {
             showAddProperty: false,
             knownAttributes: [],
-            amountOfElements: 0
+            amountOfElements: 0,
+            isSelected: false
         };
     }
 
@@ -32,6 +33,12 @@ class QueryBuilderReactElement extends GraphReactComponent {
             },
             entityObjectProvider: () => { return ['Abcde'] }
         }
+    }
+
+    _setSelected(val) {
+        this.setState({
+            isSelected: val
+        })
     }
 
     componentWillMount() {
@@ -69,6 +76,13 @@ class QueryBuilderReactElement extends GraphReactComponent {
         });
     };
 
+    _buildStyle() {
+        let res = {};
+        if (this.state.isSelected) res.borderWidth = '4px';
+        return res;
+    }
+
+
     render() {
         let renderOptions = () => {
             return this.state.knownAttributes.map(it=><option>{it.name}</option>)
@@ -98,7 +112,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
         return (
           <div className="row" style={{width: '200px'}}>
-            <div className="panel panel-border panel-custom">
+            <div className="panel panel-border panel-custom" style={this._buildStyle()}>
                 <div className="panel-heading" style={{color: this.props.color}}>
                     <h3 className="panel-title">
                         {this.props.entityObject.name}
@@ -130,6 +144,10 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     get entityType() {
         return this._refObject;
+    }
+
+    _setSelected(val) {
+        this._reactDomElement._setSelected(val)
     }
 
     _handleDoubleClick() {
