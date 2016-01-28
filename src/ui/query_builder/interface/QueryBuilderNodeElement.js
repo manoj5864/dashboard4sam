@@ -154,12 +154,12 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         const name = this._refObject.name;
         const id = this._refObject.id;
         const title = ['Details for EntityType ', <strong>{name}</strong>];
-        const firstTab = (
+        const entitiesTab = (
             <EntityTypeDetails id={id} name={name} />
         );
 
         const wrappedTabs = [
-            new TabWrapper('Entities', 0, firstTab),
+            new TabWrapper('Entities', null, entitiesTab, '60%'),
             new TabWrapper('Statistics', null, <div>Statistics</div>)
         ];
 

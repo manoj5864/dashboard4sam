@@ -25,11 +25,9 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
     constructor(props) {
         super(props);
         this.state = {
-            cols: ['col1', 'col2', 'col3'],
+            cols: ['Column1', 'Column2'],
             rows: [
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'test3'}),
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'dgfh'}),
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'sdg'})
+                new RowWrapper({Column1: 'Loading', Column2: 'Data...'})
             ],
             id: props.id
         };
