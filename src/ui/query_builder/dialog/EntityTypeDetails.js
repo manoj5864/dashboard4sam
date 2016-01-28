@@ -34,11 +34,11 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
         this._handleRefresh()
     }
 
-    async _handleRefresh() {
-        const entityType = this.state.id;
+    static async getTypeDetails(typeId) {
+        let result = {};
         const tempClass = await app.socioCortexManager.executeQuery(`
                 query getClassDefinition {
-                    type(id: "${entityType}") {
+                    type(id: "${typeId}") {
                         name
                         attributes(includeLinks: true) {
                             id
@@ -58,16 +58,25 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 attributes.push(attr.name)
             }
         });
+        result.id = typeId;
+        result.name = classDef.name;
+        result.attributes = attributes;
+        result.links = links;
+        return result;
+    }
+
+    async _handleRefresh() {
+        const details = await EntityTypeDetails.getTypeDetails(this.state.id);
         const tempEntities = await app.socioCortexManager.executeQuery(`
                 query getEntitiesDetailed {
-                    entity(typeId: "${entityType}") {
+                    entity(typeId: "${details.id}") {
                         name
-                        attributes(names: ${JSON.stringify(attributes)}) {
+                        attributes(names: ${JSON.stringify(details.attributes)}) {
                             id
                             name
                             value
                         }
-                        links(names: ${JSON.stringify(links)}) {
+                        links(names: ${JSON.stringify(details.links)}) {
                             id
                             name
                             value {
@@ -79,15 +88,15 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 }
             `);
         const entities = tempEntities.data.entity;
-        const cols = _.union(attributes, links);
+        const cols = _.union(details.attributes, details.links);
         let contents = entities.map(entity => {
             let attrs = {};
-            attributes.forEach((attr) => {
+            details.attributes.forEach((attr) => {
                 const temp = entity.attributes.find(a => {return a.name === attr});
                 const value = temp && temp.value[0] || null;
                 attrs[attr] = value;
             });
-            links.forEach((link) => {
+            details.links.forEach((link) => {
                 const temp = entity.links.find(l => {return l.name === link});
                 const value = temp && temp.value.map(v => v.name).join(', ') || null;
                 attrs[link] = value;

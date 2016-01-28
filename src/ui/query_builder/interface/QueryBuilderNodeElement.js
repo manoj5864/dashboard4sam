@@ -8,6 +8,7 @@ import {QueryUtils} from '../../../model/QueryUtils'
 import {Modal} from '../../../ui/main/widgets/Modal'
 import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
 import {EntityTypeDetails} from '../../../ui/query_builder/dialog/EntityTypeDetails'
+import {CompletenessStatsView} from '../../../ui/graphs/CompletenessStats'
 
 let React = window.React;
 
@@ -160,7 +161,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
         const wrappedTabs = [
             new TabWrapper('Entities', null, entitiesTab, '60%'),
-            new TabWrapper('Statistics', null, <div>Statistics</div>)
+            new TabWrapper('Statistics', null, <CompletenessStatsView id={id} name={name} />, '60%')
         ];
 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
