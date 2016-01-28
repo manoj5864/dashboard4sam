@@ -39,7 +39,7 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
     async _handleRefresh() {
         const entityType = this.state.id;
         const tempClass = await app.socioCortexManager.executeQuery(`
-                query Definition {
+                query getClassDefinition {
                     type(id: "${entityType}") {
                         name
                         attributes(includeLinks: true) {
@@ -59,9 +59,9 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
             } else {
                 attributes.push(attr.name)
             }
-        })
+        });
         const tempEntities = await app.socioCortexManager.executeQuery(`
-                query Entities {
+                query getEntitiesDetailed {
                     entity(typeId: "${entityType}") {
                         name
                         attributes(names: ${JSON.stringify(attributes)}) {
@@ -95,7 +95,7 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 attrs[link] = value;
             });
             return attrs;
-        })
+        });
         this.setState({
             cols: cols,
             rows: contents.map(row => {return new RowWrapper(row)})

@@ -75,10 +75,10 @@ export class Modal extends mixin(React.Component, TLoggable) {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h4 className="modal-title">{this.state.header}</h4>
-                        </div>,
+                        </div>
                         <div className="modal-body">
-                                {this.state.content}
-                        </div>,
+                            {this.state.content}
+                        </div>
                         <div className="modal-footer">
                             <Button text="Close" onClick={this._handleCloseClick.bind(this)} />
                         </div>

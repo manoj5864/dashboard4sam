@@ -14,15 +14,16 @@ export class FormControl extends React.Component {
         return this.props.placeholder || ''
     }
 
-    static getDefaultProps() {
+    static get defaultProps() {
         return {
-            className: ''
+            className: '',
+            type: 'text'
         }
     }
 
     _buildInput() {
-        return this.props.children || (
-            <input type="text" placeholder={this.placeholder} className="form-control" ref={(c) => this._inputControl = c} />
+        return this.props.children ||  (
+            <input type={this.props.type} placeholder={this.placeholder} className="form-control" ref={(c) => this._inputControl = c} />
         )
     }
 
