@@ -292,7 +292,7 @@ export class SocioCortexApi {
     }
 
     async _makeRequest(url) {
-        if (!url.match(/^http:\/\/.*/)) {
+        if (!url.match(/^http[s]?:\/\/.*/)) {
             url = this._relative_url + url
         }
 
