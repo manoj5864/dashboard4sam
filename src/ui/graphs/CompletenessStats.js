@@ -1,6 +1,9 @@
 import {mixin} from '../../util/mixin'
 import {TLoggable} from '../../util/logging/TLoggable'
 import {PlotlyStackBarChart} from '../graphs/plotly/PlotlyStackBarChart'
+import {EntityTypeDetails} from '../../ui/query_builder/dialog/EntityTypeDetails'
+import {app} from '../../Application'
+import {default as _} from 'lodash'
 
 export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
 
@@ -21,14 +24,13 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
     constructor() {
         super();
         this.state = {};
-        this._handleRefresh();
     }
 
     get name() {
         return "Completeness Stats View"
     }
 
-    async _handleRefresh() {
+    async componentDidMount() {
         const details = await EntityTypeDetails.getTypeDetails(this.props.id);
         const tempEntities = await app.socioCortexManager.executeQuery(`
                 query getEntitiesDetailed {
@@ -51,7 +53,7 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
                 }
             `);
         const entities = tempEntities.data.entity;
-        const cols = _.union(details.attributes, details.links);
+        const cols = details.attributes.concat(details.links);
         let contents = entities.map(entity => {
             let attrs = {};
             details.attributes.forEach((attr) => {
@@ -66,8 +68,14 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
             });
             return attrs;
         });
-
-
+        const attrTrue = details.attributes.map(name => {
+            return contents.filter( entity => !!entity[name]).length
+        });
+        const linkTrue = details.links.map(name => {
+            return contents.filter( entity => !!entity[name]).length
+        });
+        const valuesTrue = attrTrue.concat(linkTrue);
+        const valuesFalse = valuesTrue.map(count => contents.length - count);
 
         ReactDOM.unmountComponentAtNode($('#attr-completeness')[0]);
         ReactDOM.render(
@@ -77,9 +85,9 @@ export class CompletenessStatsView extends mixin(React.Component, TLoggable) {
                 labels={cols}
                 name1='attr present'
                 name2='attr not present'
-                width="600"
-                height="400"
-                title={`Architecture Attribute Completenes`}
+                width="800"
+                height="500"
+                title={`${details.name} Attribute Completeness`}
             >
             </PlotlyStackBarChart>,
             $('#attr-completeness')[0]
