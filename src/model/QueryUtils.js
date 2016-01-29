@@ -20,7 +20,7 @@ export class QueryUtils {
         return (await QueryUtils.entities.apply(null, args)).entity.length;
     }
 
-    static async doTwoEntitiesRelate(id1, id2) {
+    static async doTwoEntityTypesRelate(id1, id2) {
         let idCollection = [id1, id2];
         let objects = await app.socioCortexManager.executeQuery(`
             query EntityTypeQuery {

@@ -98,12 +98,17 @@ class SocioCortexWorkspace {
         }
     }
 
+    async getUrl(url, type) {
+        let object = await this._cortexClient._makeRequest(this._buildUrl(queryString));
+        return new type(this._cortexClient, object);
+    }
+
     async executeMxlQuery(attributes, metaAttributes, mxlBody, showRichTextContent = false) {
 
     }
 }
 
-class SocioCortexEntity {
+export class SocioCortexEntity {
     constructor(client, json) {
         this._cortexClient = client
         this._json = json

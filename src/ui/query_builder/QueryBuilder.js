@@ -56,7 +56,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
             let fromEntity = from.entityType;
             let toEntity = to.entityType;
 
-            let res = await QueryUtils.doTwoEntitiesRelate(fromEntity.id, toEntity.id);
+            let res = await QueryUtils.doTwoEntityTypesRelate(fromEntity.id, toEntity.id);
             return res ? true : false;
         });
     }
@@ -74,6 +74,29 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         });
     }
 
+    _handleSankeyClick() {
+        let unconnectedNodes = this._surfaceManager.state().unconnnectedNodes();
+        if (unconnectedNodes.length > 0) {
+            this.warn(`There may be no unconnected nodes when triggering computation`)
+            return;
+        }
+
+        // Construct the query
+        let nodes = this._surfaceManager.state().firstNodes();
+        if (nodes.length > 1) {
+            this.warn(`Multiple start paths were discovered`)
+            return;
+        }
+
+        let firstElement = nodes[0];
+        let query = `
+        query EntityRelationshipQuery {
+            entity(typeId: ${firstElement.entityType.id}) {
+            }
+        }
+        `
+    }
+
     render() {
         return (
             <div>
@@ -86,7 +109,13 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                     {this._renderEntityList()}
                                 </ul>
                             </li>
-
+                            <li className="has-submenu">
+                                <a href="#">Analytics</a>
+                                <ul className="submenu">
+                                    <li><a href="#" onClick={this._handleSankeyClick.bind(this)}>Sankey</a></li>
+                                    <li><a hreF="#">Tree Explorer</a></li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                 </div>

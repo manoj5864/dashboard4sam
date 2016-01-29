@@ -29,6 +29,16 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
                         res.push(n);
                 }
                 return res;
+            },
+            firstNodes:  () => {
+                let res = new Set();
+                for (let n of this.state.nodeList) {
+                    let isBeginningNode = this.state.connectionList.every((it) => {
+                        it.to != n
+                    });
+                    if (isBeginningNode) res.add(n);
+                }
+                return [...res];
             }
         }
     }
@@ -180,6 +190,19 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
                     from: from,
                     to: to,
                     path: null
+                });
+
+                // Inform the nodes
+                from._sm_informConnectedNode({
+                    node: to,
+                    connected: true,
+                    outgoing: true
+                });
+
+                to._sm_informConnectedNode({
+                    node: from,
+                    connected: true,
+                    incoming: true
                 });
 
                 // Clear connect operation

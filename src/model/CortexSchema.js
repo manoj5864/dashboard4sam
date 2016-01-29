@@ -9,23 +9,25 @@ import {
     GraphQLBoolean,
     GraphQLNonNull
 } from 'graphql';
+import {SocioCortexEntity} from '../service/api/SocioCortexApi'
 
 let schemaFunc = (cortexWorkspace) => {
 
-    let entityClassReference = new GraphQLObjectType({
-        name: 'EntityClassReference',
-        fields: () => {
-            return {
-                name: {
-                    type: GraphQLString
-                },
-                entityType: {
-                    description: 'Retrieve the related entity',
-                    type: entityClass
+    let entityReference = new GraphQLObjectType({
+        name: 'EntityReference',
+        fields: () => ({
+            id: { type: GraphQLString },
+            name: { type: GraphQLString },
+            entity: {
+                type: entity,
+                resolve: async (root) => {
+                    let url = root.href;
+                    return (await cortexWorkspace.getUrl(url, SocioCortexEntity));
                 }
             }
-        }
+        })
     });
+    let entityReferenceList = new GraphQLList(entityReference);
 
     let genericEntityTypeAttribute = new GraphQLInterfaceType({
         name: 'GenericEntityTypeAttribute',
@@ -153,7 +155,7 @@ let schemaFunc = (cortexWorkspace) => {
                 type: GraphQLString
             },
             value: {
-                type: entityList
+                type: entityReferenceList
             }
         })
     });
@@ -191,41 +193,6 @@ let schemaFunc = (cortexWorkspace) => {
                 },
                 resolve: (root, {names}) => {
                     return root.attributes.filter(attr => names.indexOf(attr.name) !== -1)
-                }
-            },
-            relatedTo: {
-                type: new GraphQLList(entity),
-                args: {
-                    type: { type: GraphQLString }
-                },
-                resolve: async (root, {type}) => {
-                    // Discover attribute
-                    let query2 = `
-                        query EntityTypeQuery {
-                            type(name: "${type}") {
-                                referencedBy {
-                                    name
-                                    entityType {
-                                        name
-                                    }
-                                }
-                            }
-                        }
-                    `;
-                    let resx = await graphql(schemaFunc(cortexWorkspace), query2);
-                    debugger;
-
-                    let entityId = root.id;
-                    let query = `
-                        query EntityRelationQuery {
-                            entity(attributes: [{value: "${entityId}"}] ) {
-                                id
-                                name
-                            }
-                        }
-                    `;
-                    let res = await graphql(schemaFunc(cortexWorkspace), query);
-                    return res.data.entity;
                 }
             }
         })
