@@ -21,24 +21,31 @@ class InformationEvent {
 export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     state() {
+        let self = this;
         return {
             unconnnectedNodes: () => {
                 let res = [];
-                for (let n of this.state.nodeList) {
-                    if (!this.state.connectionList.some((it) => { return (it.from == n) || (it.to == n) }))
+                for (let n of this._state.nodeList) {
+                    if (!this._state.connectionList.some((it) => { return (it.from == n) || (it.to == n) }))
                         res.push(n);
                 }
                 return res;
             },
             firstNodes:  () => {
                 let res = new Set();
-                for (let n of this.state.nodeList) {
-                    let isBeginningNode = this.state.connectionList.every((it) => {
-                        it.to != n
-                    });
+                for (let n of this._state.nodeList) {
+                    let isBeginningNode = this._state.connectionList.every((it) => it.to != n);
                     if (isBeginningNode) res.add(n);
                 }
                 return [...res];
+            },
+            path: function* (startNode) {
+                let relevantNode = startNode;
+                for (;;) {
+                    relevantNode = self._state.connectionList.find(it => it.from == relevantNode);
+                    if (relevantNode) yield relevantNode;
+                    else return;
+                }
             }
         }
     }
@@ -46,7 +53,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     // Behavior
     _dragMove(d) {
         // Check if we are dragging an arrow or a node
-        if (this.state.shiftNodeDrag) {
+        if (this._state.shiftNodeDrag) {
             this._dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this._graph[0][0])[0] + ',' + d3.mouse(this._graph[0][0])[1])
         } else if (d instanceof NodeElement) {
             d.x += d3.event.dx;
@@ -62,11 +69,11 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             switch (keyCode) {
                 case 46:
                     // Delete Key
-                    this.state.selectionList.forEach(it => {
-                        this.state.nodeList = this.state.nodeList.filter(n=>n != it);
-                        this.state.connectionList = this.state.connectionList.filter(c=> !(c.from == it || c.to == it));
+                    this._state.selectionList.forEach(it => {
+                        this._state.nodeList = this._state.nodeList.filter(n=>n != it);
+                        this._state.connectionList = this._state.connectionList.filter(c=> !(c.from == it || c.to == it));
                     });
-                    this.state.selectionList.clear();
+                    this._state.selectionList.clear();
                     break;
             }
             this._update();
@@ -144,8 +151,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         // Show arrow for connection
         d3.event.stopPropagation();
         if (d3.event.shiftKey){
-            this.state.shiftNodeDrag = d3.event.shiftKey;
-            this.state.connectOperation.startNode = d;
+            this._state.shiftNodeDrag = d3.event.shiftKey;
+            this._state.connectOperation.startNode = d;
             this._dragLine
                 .classed('hidden', false)
                 .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
@@ -155,38 +162,38 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     _handleMouseClick(d) {
         // Is already selected?
         if (d3.event.ctrlKey) {
-            let isSelected = this.state.selectionList.has(d);
+            let isSelected = this._state.selectionList.has(d);
             if (isSelected) {
                 // Deselect
-                this.state.selectionList.delete(d);
+                this._state.selectionList.delete(d);
                 d._setSelected(false);
             } else {
                 // Select
-                this.state.selectionList.add(d);
+                this._state.selectionList.add(d);
                 d._setSelected(true);
             }
         }
     }
 
     async _handleMouseUp(d) {
-        let dragActive = this.state.shiftNodeDrag;
+        let dragActive = this._state.shiftNodeDrag;
 
         // Deactivate current dragging operation
-        this.state.shiftNodeDrag = false;
+        this._state.shiftNodeDrag = false;
         this._dragLine.classed('hidden', true);
 
         if (dragActive) {
-            this.state.connectOperation.endNode = d;
-            let from = this.state.connectOperation.startNode;
-            let to = this.state.connectOperation.endNode;
+            this._state.connectOperation.endNode = d;
+            let from = this._state.connectOperation.startNode;
+            let to = this._state.connectOperation.endNode;
 
             // Only add connection if acknowledged
-            this.debug(`Waiting for response of ${this.state.events.connectionEvents.length} acknowledgements...`);
-            let promiseOfConnectionAck = await Promise.all(this.state.events.connectionEvents.map(it=>it({from:from, to:to})));
+            this.debug(`Waiting for response of ${this._state.events.connectionEvents.length} acknowledgements...`);
+            let promiseOfConnectionAck = await Promise.all(this._state.events.connectionEvents.map(it=>it({from:from, to:to})));
             this.debug(`Received acknowledgements, State: ${promiseOfConnectionAck}`);
 
             if (promiseOfConnectionAck.every(it=>it)) {
-                this.state.connectionList.push({
+                this._state.connectionList.push({
                     from: from,
                     to: to,
                     path: null
@@ -206,8 +213,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
                 });
 
                 // Clear connect operation
-                this.state.connectOperation.startNode = null;
-                this.state.connectOperation.endNode = null;
+                this._state.connectOperation.startNode = null;
+                this._state.connectOperation.endNode = null;
                 this._update();
             }
         }
@@ -215,7 +222,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     _update() {
         // Render elements
-        this._elements = this._elements.data(this.state.nodeList, (d) => d.id);
+        this._elements = this._elements.data(this._state.nodeList, (d) => d.id);
         this._elements.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
         // Add the new nodes
         let newElements = this._elements.enter().append('g');
@@ -233,7 +240,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         });
 
         // Update old paths
-        this._paths = this._paths.data(this.state.connectionList, (it) => `${it.from.id}-${it.to.id}`);
+        this._paths = this._paths.data(this._state.connectionList, (it) => `${it.from.id}-${it.to.id}`);
         this._paths.style('marker-end', 'url(#end-arrow)')
             //.classed();
             .attr('d', (d) => {
@@ -284,14 +291,14 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     addNode(node) {
         if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
-        this.state.nodeList.push(node);
+        this._state.nodeList.push(node);
         this._update()
     }
 
     addNodes(nodes) {
         nodes.forEach((node) => {
             if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
-            this.state.nodeList.push(node)
+            this._state.nodeList.push(node)
         });
         this._update()
     }
@@ -302,12 +309,12 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             let res = await cb.apply(null, args);
             return (typeof res == 'boolean') ? res : true;
         };
-        this.state.events.connectionEvents.push(customCb);
+        this._state.events.connectionEvents.push(customCb);
     }
 
     constructor(element, existingNodes = null, connectionList = null) {
         super();
-        this.state = {
+        this._state = {
             nodeList: (existingNodes || []),
             connectionList: [],
             selectionList: new Set(),

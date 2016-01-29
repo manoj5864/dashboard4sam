@@ -74,7 +74,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         });
     }
 
-    _handleSankeyClick() {
+    async _handleSankeyClick() {
         let unconnectedNodes = this._surfaceManager.state().unconnnectedNodes();
         if (unconnectedNodes.length > 0) {
             this.warn(`There may be no unconnected nodes when triggering computation`)
@@ -83,12 +83,21 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
         // Construct the query
         let nodes = this._surfaceManager.state().firstNodes();
-        if (nodes.length > 1) {
-            this.warn(`Multiple start paths were discovered`)
+        if (nodes.length != 1) {
+            this.warn(`Multiple start paths were discovered`);
             return;
         }
 
         let firstElement = nodes[0];
+        let cursor = this._surfaceManager.state().path(firstElement);
+
+        let lastElement = firstElement;
+        for (let nextElement of cursor) {
+            let relationships = await QueryUtils.doTwoEntityTypesRelate(lastElement.id, nextElement.id);
+            console.log(relationships)
+            lastElement = nextElement;
+        }
+
         let query = `
         query EntityRelationshipQuery {
             entity(typeId: ${firstElement.entityType.id}) {
