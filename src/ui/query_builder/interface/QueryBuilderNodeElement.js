@@ -13,6 +13,10 @@ import {ColorPicker} from '../../main/widgets/util/ColorPicker'
 
 let React = window.React;
 
+class EntityTypeInformation {
+    get amountOfElements() {}
+}
+
 class QueryBuilderReactElement extends GraphReactComponent {
 
     constructor(props) {
@@ -22,6 +26,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
             knownAttributes: [],
             amountOfElements: 0,
             isSelected: false,
+            isLoading: false,
             color: props.color
         };
     }
@@ -53,7 +58,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
     }
 
     async _refresh() {
-
+        this.setState({isLoading: true});
         let attributes = app.socioCortexManager.executeQuery(`
             query EntityAttributes {
                 type(id: "${this.props.entityObject.id}") {
@@ -75,12 +80,13 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
         this.setState({
             knownAttributes: resultAttributes.data.type[0].attributes,
-            amountOfElements: await entityAmount
+            amountOfElements: await entityAmount,
+            isLoading: false
         });
     };
 
     _buildStyle() {
-        let res = {};
+        let res = {width: '200px'};
         if (this.state.isSelected) res.borderWidth = '4px';
         return res;
     }
@@ -119,9 +125,29 @@ class QueryBuilderReactElement extends GraphReactComponent {
             this.setState({color: newColor})
         };
 
+        let renderLoader = () => {
+            if (this.state.isLoading)
+            return (
+                <div style={{position: 'fixed', width: '100%', height: '100%'}}>
+                    <div style={{position: 'absolute',
+                                height: '100%',
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.80)',
+                                zIndex: '1'}}>
+                        <div className="sk-folding-cube" style={{marginTop: '20%'}}>
+                            <div className="sk-cube1 sk-cube"></div>
+                            <div className="sk-cube2 sk-cube"></div>
+                            <div className="sk-cube4 sk-cube"></div>
+                            <div className="sk-cube3 sk-cube"></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         return (
-          <div className="row" style={{width: '200px'}}>
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
+                {renderLoader()}
                 <div className="panel-heading" style={{borderColor: this.state.color, color: this.state.color}}>
                     <h3 className="panel-title" style={{color: this.state.color}}>
                         {this.props.entityObject.name}
@@ -141,7 +167,6 @@ class QueryBuilderReactElement extends GraphReactComponent {
                     <button onClick={pickColor}>Color</button>
                 </div>
             </div>
-          </div>
         )
     }
 
@@ -176,14 +201,19 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
 
-    get entities() {
+    _update({nodeConnected = false} = {}, context) {
+        if (nodeConnected) {
+            if (context.incoming) {
+                this.debug(`Incoming connection added`)
+                let incomingNodes = this._sm_getIncomingNodes();
 
+            }
+
+        }
     }
 
-    _update({nodeConnected = false} = {}) {
-        if (nodeConnected) {
-            // Node connection event
-        }
+    _refresh() {
+
     }
 
     addRelation(queryBuilderNodeElement) {
@@ -193,10 +223,10 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     constructor(reference) {
         super();
         this._refObject = reference;
-        this._element = <QueryBuilderReactElement
-            entityObject={this._refObject}
-        />;
-        this._applyReactElement(this._element);
+        this._applyReactElement(
+            <QueryBuilderReactElement
+            entityObject={this._refObject}/>
+        );
 
         this._state = {
             promiseWaitingForEntities: null

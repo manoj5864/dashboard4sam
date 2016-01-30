@@ -19,6 +19,54 @@ class InformationEvent {
     }
 }
 
+class GraphConfiguration {
+    /*
+        [
+            {
+                from: '19213-234',
+                to: '123123-13223'
+            }, ...
+        ]
+     */
+    get connections() {}
+
+    /*
+        [
+            {
+                id: '19213-234',
+                type: 'QueryBuilderNodeElement',
+                x: 12345,
+                y: 12355,
+                data: <JSON of element>
+            }
+        ]
+     */
+    get elements() {}
+
+    /*
+        {
+            zoom: 0.4944,
+            cameraState: {x: 1234, y: 1233}
+        }
+     */
+    get surfaceState() {}
+    set surfaceState(val) {
+        if (!val.zoom || !val.cameraState) throw new Error('Insufficient state provided')
+    }
+
+    constructor(json) {
+        if (json) this._json = json;
+        else this._json = {
+            surfaceState: {
+                cameraState: {},
+                zoom: 0.0
+            },
+            elements: [],
+            connections: []
+        };
+    }
+}
+
 export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     /*
@@ -200,6 +248,9 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             if (promiseOfConnectionAck.every(it=>it)) {
                 let res = this._state.graphManager.add(from, to);
 
+                from._sm_triggerEvent('connection', {outgoing: true, incoming: false});
+                to._sm_triggerEvent('connection', {outgoing: false, incoming: true});
+
                 // Clear connect operation
                 this._state.connectOperation.startNode = null;
                 this._state.connectOperation.endNode = null;
@@ -306,8 +357,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         }
     }
 
-    static fromJSON(json) {
-
+    static fromJSON(json, nodeType) {
+        nodeType.fromJSON();
     }
 
     constructor(element, existingNodes = null, connectionList = null) {
@@ -315,7 +366,6 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._state = {
             nodeList: (existingNodes || []),
 
-            connectionList: [],
             graphManager: new GraphHelper({preventCyclicalGraph: true}),
 
             selectionList: new Set(),

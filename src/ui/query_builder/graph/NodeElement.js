@@ -61,11 +61,11 @@ export class NodeElement extends mixin(null, TLoggable) {
     }
 
     _sm_getIncomingNodes() {
-        return this._parent._incomingNodesOf({node: this});
+        return this._parent._incomingConnectionsOf({node: this});
     }
 
     _sm_getOutgoingNodes() {
-        return this._parent._outgoingNodesOf({node: this});
+        return this._parent._outgoingConnectionsOf({node: this});
     }
 
     _sm_setParent(surfaceManager) {
@@ -75,12 +75,14 @@ export class NodeElement extends mixin(null, TLoggable) {
     _sm_triggerEvent(name, context) {
         switch (name) {
             case 'connection':
-                this._update({nodeConnected: true})
+                this._update({nodeConnected: true}, context)
+                break
+            case 'disconnection':
                 break
         }
     }
 
-    _update({nodeConnected = false}) {
+    _update({nodeConnected = false}, context) {
 
     }
 
