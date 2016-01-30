@@ -56,15 +56,17 @@ export class Tabs extends mixin(React.Component, TLoggable) {
 
 export class TabWrapper {
 
-    constructor(title, badge, page) {
+    constructor(title, badge, page, height = false) {
         this._title = title;
         this._badge = badge;
         this._page = page;
+        this._height = height;
     }
 
     get title() {return this._title}
     get badge() {return this._badge}
     get page() {return this._page}
+    get height() {return this._height}
 
 }
 
@@ -151,8 +153,10 @@ class TabbedContentPage extends React.Component {
     }
 
     _buildStyle() {
-        if (!this.state.visible) return {display: 'none'};
-        return {};
+        let result = {overflowY: 'auto'};
+        if (!this.state.visible) result['display'] = 'none';
+        if (this.props.height) result['height'] = this.props.height;
+        return result;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -205,7 +209,8 @@ export class TabbedContent extends React.Component {
                       indexUpdate={indexUpdate.bind(this)}></Tabs>
                 {this.state.content.map((page, index) => {
                     return (
-                        <TabbedContentPage visible={index===this.state.active}>
+                        <TabbedContentPage visible={index===this.state.active}
+                            height={page.height}>
                             {page.page}
                         </TabbedContentPage>
                     )

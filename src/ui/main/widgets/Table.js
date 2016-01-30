@@ -17,7 +17,7 @@ export class Table extends mixin(React.Component, TLoggable) {
     }
 
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {}
     }
 
@@ -32,9 +32,13 @@ export class Table extends mixin(React.Component, TLoggable) {
     }
 
     _buildBody() {
-        return this.props.rows.map(row => {
-            return this._buildRow(row)
-        })
+        return(
+            <tbody>
+            {this.props.rows.map(row => {
+                return this._buildRow(row)
+            })}
+            </tbody>
+        )
     }
 
     _buildRow(row) {
@@ -51,7 +55,7 @@ export class Table extends mixin(React.Component, TLoggable) {
 
     render() {
         return (
-            <table style={{width: '100%'}}>
+            <table className="table table-striped" style={{width: '100%'}}>
                 {this._buildHead()}
                 {this._buildBody()}
             </table>

@@ -25,22 +25,20 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
     constructor(props) {
         super(props);
         this.state = {
-            cols: ['col1', 'col2', 'col3'],
+            cols: ['Column1', 'Column2'],
             rows: [
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'test3'}),
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'dgfh'}),
-                new RowWrapper({col1: 'test', col2: 'test2', col3: 'sdg'})
+                new RowWrapper({Column1: 'Loading', Column2: 'Data...'})
             ],
             id: props.id
         };
         this._handleRefresh()
     }
 
-    async _handleRefresh() {
-        const entityType = this.state.id;
+    static async getTypeDetails(typeId) {
+        let result = {};
         const tempClass = await app.socioCortexManager.executeQuery(`
-                query Definition {
-                    type(id: "${entityType}") {
+                query getClassDefinition {
+                    type(id: "${typeId}") {
                         name
                         attributes(includeLinks: true) {
                             id
@@ -59,17 +57,26 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
             } else {
                 attributes.push(attr.name)
             }
-        })
+        });
+        result.id = typeId;
+        result.name = classDef.name;
+        result.attributes = attributes;
+        result.links = links;
+        return result;
+    }
+
+    async _handleRefresh() {
+        const details = await EntityTypeDetails.getTypeDetails(this.state.id);
         const tempEntities = await app.socioCortexManager.executeQuery(`
-                query Entities {
-                    entity(typeId: "${entityType}") {
+                query getEntitiesDetailed {
+                    entity(typeId: "${details.id}") {
                         name
-                        attributes(names: ${JSON.stringify(attributes)}) {
+                        attributes(names: ${JSON.stringify(details.attributes)}) {
                             id
                             name
                             value
                         }
-                        links(names: ${JSON.stringify(links)}) {
+                        links(names: ${JSON.stringify(details.links)}) {
                             id
                             name
                             value {
@@ -81,21 +88,21 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 }
             `);
         const entities = tempEntities.data.entity;
-        const cols = _.union(attributes, links);
+        const cols = _.union(details.attributes, details.links);
         let contents = entities.map(entity => {
             let attrs = {};
-            attributes.forEach((attr) => {
+            details.attributes.forEach((attr) => {
                 const temp = entity.attributes.find(a => {return a.name === attr});
                 const value = temp && temp.value[0] || null;
                 attrs[attr] = value;
             });
-            links.forEach((link) => {
+            details.links.forEach((link) => {
                 const temp = entity.links.find(l => {return l.name === link});
                 const value = temp && temp.value.map(v => v.name).join(', ') || null;
                 attrs[link] = value;
             });
             return attrs;
-        })
+        });
         this.setState({
             cols: cols,
             rows: contents.map(row => {return new RowWrapper(row)})

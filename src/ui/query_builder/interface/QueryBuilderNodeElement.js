@@ -8,25 +8,28 @@ import {QueryUtils} from '../../../model/QueryUtils'
 import {Modal} from '../../../ui/main/widgets/Modal'
 import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
 import {EntityTypeDetails} from '../../../ui/query_builder/dialog/EntityTypeDetails'
+import {CompletenessStatsView} from '../../../ui/graphs/CompletenessStats'
+import {ColorPicker} from '../../main/widgets/util/ColorPicker'
 
 let React = window.React;
 
 class QueryBuilderReactElement extends GraphReactComponent {
 
-    constructor() {
+    constructor(props) {
         super();
         this.state = {
             showAddProperty: false,
             knownAttributes: [],
             amountOfElements: 0,
-            isSelected: false
+            isSelected: false,
+            color: props.color
         };
     }
 
     static get defaultProps() {
         return {
             name: 'Default Name',
-            color: '#5d9cec',
+            color: '#5fbeaa',
             entityObject: {
                 id: null,
                 name: ''
@@ -110,11 +113,17 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
         };
 
+        const pickColor = async ()=>{
+            const newColor = await ColorPicker.getColor(this.state.color);
+            console.log(`Set new color ${newColor}`);
+            this.setState({color: newColor})
+        };
+
         return (
           <div className="row" style={{width: '200px'}}>
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
-                <div className="panel-heading" style={{color: this.props.color}}>
-                    <h3 className="panel-title">
+                <div className="panel-heading" style={{borderColor: this.state.color, color: this.state.color}}>
+                    <h3 className="panel-title" style={{color: this.state.color}}>
                         {this.props.entityObject.name}
                     </h3>
                 </div>
@@ -129,6 +138,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                     </table>
                     {addProperty()}
                     <button onClick={it=>this.setState({showAddProperty: true})}>Add</button>
+                    <button onClick={pickColor}>Color</button>
                 </div>
             </div>
           </div>
@@ -154,13 +164,13 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         const name = this._refObject.name;
         const id = this._refObject.id;
         const title = ['Details for EntityType ', <strong>{name}</strong>];
-        const firstTab = (
+        const entitiesTab = (
             <EntityTypeDetails id={id} name={name} />
         );
 
         const wrappedTabs = [
-            new TabWrapper('Entities', 0, firstTab),
-            new TabWrapper('Statistics', null, <div>Statistics</div>)
+            new TabWrapper('Entities', null, entitiesTab, '60%'),
+            new TabWrapper('Statistics', null, <CompletenessStatsView id={id} name={name} />, '60%')
         ];
 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)

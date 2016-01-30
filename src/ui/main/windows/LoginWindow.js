@@ -66,7 +66,7 @@ export class LoginWindow extends React.Component {
                     <div className="login">
                         <Form>
                             <FormControl placeholder="username" ref={c=>this._usernameField = c} />
-                            <FormControl placeholder="password" ref={c=>this._passwordField = c} />
+                            <FormControl type="password" placeholder="password" ref={c=>this._passwordField = c} />
                             <FormControl>
                                 <Button className="btn btn-block text-uppercase waves-effect waves-light" style={{'backgroundColor': '#224c70'}} onClick={this._handleLoginClick.bind(this)} text="Login"/>
                             </FormControl>
