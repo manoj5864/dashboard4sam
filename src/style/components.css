@@ -695,47 +695,47 @@
 }
 .panel-border .panel-heading {
     background-color: #ffffff;
-    border-top: 3px solid #DADFE2 !important;
+    border-top: 6px solid !important;
     padding: 10px 20px 0px;
 }
 .panel-border .panel-body {
     padding: 15px 20px 20px 20px;
 }
 .panel-border.panel-custom .panel-heading {
-    border-color: #5fbeaa !important;
-    color: #5fbeaa !important;
+    border-color: #5fbeaa;
+    color: #5fbeaa;
 }
 .panel-border.panel-primary .panel-heading {
-    border-color: #5d9cec !important;
-    color: #5d9cec !important;
+    border-color: #5d9cec;
+    color: #5d9cec;
 }
 .panel-border.panel-success .panel-heading {
-    border-color: #81c868 !important;
-    color: #81c868 !important;
+    border-color: #81c868;
+    color: #81c868;
 }
 .panel-border.panel-info .panel-heading {
-    border-color: #34d3eb !important;
-    color: #34d3eb !important;
+    border-color: #34d3eb;
+    color: #34d3eb;
 }
 .panel-border.panel-warning .panel-heading {
-    border-color: #ffbd4a !important;
-    color: #ffbd4a !important;
+    border-color: #ffbd4a;
+    color: #ffbd4a;
 }
 .panel-border.panel-danger .panel-heading {
-    border-color: #f05050 !important;
-    color: #f05050 !important;
+    border-color: #f05050;
+    color: #f05050;
 }
 .panel-border.panel-purple .panel-heading {
-    border-color: #7266ba !important;
-    color: #7266ba !important;
+    border-color: #7266ba;
+    color: #7266ba;
 }
 .panel-border.panel-pink .panel-heading {
-    border-color: #fb6d9d !important;
-    color: #fb6d9d !important;
+    border-color: #fb6d9d;
+    color: #fb6d9d;
 }
 .panel-border.panel-inverse .panel-heading {
-    border-color: #4c5667 !important;
-    color: #4c5667 !important;
+    border-color: #4c5667;
+    color: #4c5667;
 }
 .panel-group .panel .panel-heading a[data-toggle=collapse].collapsed:before {
     content: '\f0d7';
