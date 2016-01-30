@@ -220,6 +220,16 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     }
 
+    _sm_serialize() {
+        return {
+            id: this._id,
+            type: 'QueryBuilderNodeElement',
+            x: this._x,
+            y: this._y,
+            data: this._refObject
+        }
+    }
+
     constructor(reference) {
         super();
         this._refObject = reference;

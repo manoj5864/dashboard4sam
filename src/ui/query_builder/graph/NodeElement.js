@@ -28,7 +28,7 @@ export class NodeElement extends mixin(null, TLoggable) {
     }
 
     _handleMouseDown(d3node, d) {
-        d3.event.stopPropagation()
+        d3.event.stopPropagation();
         if (d3.event.shiftKey){
             // Connecting bevior starts
             // Inform -> Parent
@@ -75,8 +75,8 @@ export class NodeElement extends mixin(null, TLoggable) {
     _sm_triggerEvent(name, context) {
         switch (name) {
             case 'connection':
-                this._update({nodeConnected: true}, context)
-                break
+                this._update({nodeConnected: true}, context);
+                break;
             case 'disconnection':
                 break
         }
@@ -103,12 +103,12 @@ export class NodeElement extends mixin(null, TLoggable) {
     }
 
     constructor(title, id = uuid.v1(), parent = null) {
-        super()
-        this._id = id
-        this._parent = parent
-        this._x = 0
-        this._y = 0
-        this._title = title
+        super();
+        this._id = id;
+        this._parent = parent;
+        this._x = 0;
+        this._y = 0;
+        this._title = title;
 
         this._state = {
             isSelected: false,

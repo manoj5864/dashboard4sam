@@ -19,7 +19,7 @@ class InformationEvent {
     }
 }
 
-class GraphConfiguration {
+export class GraphConfiguration {
     /*
         [
             {
@@ -28,7 +28,17 @@ class GraphConfiguration {
             }, ...
         ]
      */
-    get connections() {}
+    get connections() {return this._json.connections}
+    set connections(connections) {
+        console.assert(connections instanceof Array, 'Config "elements" needs to be an Array');
+        console.assert(
+            connections.map(conn => {
+                return !!(conn.from && conn.to)
+            }).reduce((prev, current) => { return prev && current }, true),
+            'Not all connection details present'
+        );
+        this._json.connections = connections;
+    }
 
     /*
         [
@@ -41,7 +51,17 @@ class GraphConfiguration {
             }
         ]
      */
-    get elements() {}
+    get elements() {return this._json.elements}
+    set elements(elements) {
+        console.assert(elements instanceof Array, 'Config "elements" needs to be an Array');
+        console.assert(
+            elements.map(elem => {
+                return !!(elem.id && elem.type && elem.x && elem.z && elem.data)
+            }).reduce((prev, current) => { return prev && current }, true),
+            'Not all element details present'
+        );
+        this._json.elements = elements;
+    }
 
     /*
         {
@@ -49,9 +69,10 @@ class GraphConfiguration {
             cameraState: {x: 1234, y: 1233}
         }
      */
-    get surfaceState() {}
+    get surfaceState() {return this._json.surfaceState}
     set surfaceState(val) {
         if (!val.zoom || !val.cameraState) throw new Error('Insufficient state provided')
+        //TODO: where do the values come from?
     }
 
     constructor(json) {
@@ -352,9 +373,22 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
     }
 
     serialize() {
-        return {
+        let result = new GraphConfiguration();
 
-        }
+        const outgoings = this._state.nodeList
+            .map(node => {return node._sm_getOutgoingNodes()})
+            .filter(entries => {return !!entries});
+        let connections = [];
+        outgoings.forEach(linkSet => {
+            linkSet.forEach(entry => {
+                connections.push({from: entry[0]._id, to: entry[1]._id})
+            })
+        });
+        result.connections = connections;
+        result.elements = this._state.nodeList
+            .map(node => {return node._sm_serialize()});
+        debugger;
+        return result;
     }
 
     static fromJSON(json, nodeType) {
