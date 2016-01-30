@@ -290,6 +290,7 @@ export class SocioCortexApi {
         this._password = password
         this._relative_url = relative_url
         this._requestCache = {};
+        this._activeRequests = {};
     }
 
     _buildUrl(urlPart) {
@@ -301,16 +302,22 @@ export class SocioCortexApi {
             url = this._relative_url + url
         }
 
+        if (this._activeRequests[url]) {
+            return (await this._activeRequests[url]);
+        }
+
         if (this._requestCache[url]) {
             return this._requestCache[url];
         } else {
-            let result = await RequestHelper.get(
+            this._activeRequests[url] = RequestHelper.get(
                 url,
                 {
                     username: this._username,
                     password: this._password
                 }
             )
+            let result = await this._activeRequests[url];
+            this._activeRequests[url] = null;
             this._requestCache[url] = result;
             return result;
         }
