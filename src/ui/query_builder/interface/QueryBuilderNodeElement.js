@@ -170,6 +170,12 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     }
 
+    _update({nodeConnected = false} = {}) {
+        if (nodeConnected) {
+            // Node connection event
+        }
+    }
+
     addRelation(queryBuilderNodeElement) {
 
     }
@@ -181,6 +187,10 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             entityObject={this._refObject}
         />;
         this._applyReactElement(this._element);
+
+        this._state = {
+            promiseWaitingForEntities: null
+        };
     }
 
 }

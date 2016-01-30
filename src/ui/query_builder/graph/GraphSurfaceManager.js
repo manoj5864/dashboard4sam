@@ -3,6 +3,7 @@ import {TLoggable} from '../../../util/logging/TLoggable'
 import {NodeElement} from './NodeElement'
 import {ReactNodeElement} from './ReactNodeElement'
 export {NodeElement, ReactNodeElement}
+import {GraphHelper} from './util/GraphHelper'
 
 class ConnectionEventReceiver {
     async handle({from, to}){}
@@ -20,13 +21,27 @@ class InformationEvent {
 
 export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
+    /*
+        Node Helper methods
+     */
+    _incomingConnectionsOf({node = null} = {}) {
+        if (!node) throw new Error('No node was given');
+        return this._state.graphManager.incoming.get(node);
+    }
+
+    _outgoingConnectionsOf({node = null} = {}) {
+        if (!node) throw new Error('No node was given');
+        return this._state.graphManager.outgoing.get(node);
+    }
+
+
     state() {
         let self = this;
         return {
             unconnnectedNodes: () => {
                 let res = [];
                 for (let n of this._state.nodeList) {
-                    if (!this._state.connectionList.some((it) => { return (it.from == n) || (it.to == n) }))
+                    if (this._state.graphManager.has(n))
                         res.push(n);
                 }
                 return res;
@@ -34,18 +49,8 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             firstNodes:  () => {
                 let res = new Set();
                 for (let n of this._state.nodeList) {
-                    let isBeginningNode = this._state.connectionList.every((it) => it.to != n);
-                    if (isBeginningNode) res.add(n);
                 }
                 return [...res];
-            },
-            path: function* (startNode) {
-                let relevantNode = startNode;
-                for (;;) {
-                    relevantNode = self._state.connectionList.find(it => it.from == relevantNode);
-                    if (relevantNode) yield relevantNode;
-                    else return;
-                }
             }
         }
     }
@@ -71,7 +76,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
                     // Delete Key
                     this._state.selectionList.forEach(it => {
                         this._state.nodeList = this._state.nodeList.filter(n=>n != it);
-                        this._state.connectionList = this._state.connectionList.filter(c=> !(c.from == it || c.to == it));
+                        this._state.graphManager.remove(it);
                     });
                     this._state.selectionList.clear();
                     break;
@@ -193,29 +198,12 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             this.debug(`Received acknowledgements, State: ${promiseOfConnectionAck}`);
 
             if (promiseOfConnectionAck.every(it=>it)) {
-                this._state.connectionList.push({
-                    from: from,
-                    to: to,
-                    path: null
-                });
-
-                // Inform the nodes
-                from._sm_informConnectedNode({
-                    node: to,
-                    connected: true,
-                    outgoing: true
-                });
-
-                to._sm_informConnectedNode({
-                    node: from,
-                    connected: true,
-                    incoming: true
-                });
+                let res = this._state.graphManager.add(from, to);
 
                 // Clear connect operation
                 this._state.connectOperation.startNode = null;
                 this._state.connectOperation.endNode = null;
-                this._update();
+                if (res) this._update();
             }
         }
     }
@@ -240,7 +228,7 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         });
 
         // Update old paths
-        this._paths = this._paths.data(this._state.connectionList, (it) => `${it.from.id}-${it.to.id}`);
+        this._paths = this._paths.data(this._state.graphManager.path(), (it) => `${it.from.id}-${it.to.id}`);
         this._paths.style('marker-end', 'url(#end-arrow)')
             //.classed();
             .attr('d', (d) => {
@@ -289,16 +277,16 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._update();
     }
 
-    addNode(node) {
+    addNode(node, doUpdate = true) {
         if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
         this._state.nodeList.push(node);
-        this._update()
+        node._sm_setParent(this);
+        if (doUpdate) this._update()
     }
 
     addNodes(nodes) {
         nodes.forEach((node) => {
-            if (!(node instanceof NodeElement)) throw new Error('Invalid node specified')
-            this._state.nodeList.push(node)
+            this.addNode(node, false)
         });
         this._update()
     }
@@ -312,11 +300,24 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         this._state.events.connectionEvents.push(customCb);
     }
 
+    serialize() {
+        return {
+
+        }
+    }
+
+    static fromJSON(json) {
+
+    }
+
     constructor(element, existingNodes = null, connectionList = null) {
         super();
         this._state = {
             nodeList: (existingNodes || []),
+
             connectionList: [],
+            graphManager: new GraphHelper({preventCyclicalGraph: true}),
+
             selectionList: new Set(),
 
             shiftNodeDrag: false,

@@ -189,9 +189,10 @@ let schemaFunc = (cortexWorkspace) => {
             links: {
                 type: attributeLinkList,
                 args: {
-                    names: { type: new GraphQLList(GraphQLString) }
+                    names: { type: new GraphQLList(GraphQLString) },
+                    ids:   { type: new GraphQLList(GraphQLString) }
                 },
-                resolve: (root, {names}) => {
+                resolve: (root, {names, ids}) => {
                     return root.attributes.filter(attr => names.indexOf(attr.name) !== -1)
                 }
             }

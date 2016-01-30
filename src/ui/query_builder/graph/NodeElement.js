@@ -60,33 +60,44 @@ export class NodeElement extends mixin(null, TLoggable) {
         return $(document.createElementNS("http://www.w3.org/2000/svg", "circle")).attr('r', '12')[0]
     }
 
+    _sm_getIncomingNodes() {
+        return this._parent._incomingNodesOf({node: this});
+    }
 
-    _sm_informConnectedNode({node = null, connected = false, outgoing = false, incoming = false}) {
-        if (!node) throw new Error('No node was connected');
+    _sm_getOutgoingNodes() {
+        return this._parent._outgoingNodesOf({node: this});
+    }
 
-        // Determine the set
-        let relevantSet = null;
-        if (outgoing) {
-            relevantSet = this._state.outgoingNodes;
-        } else if (incoming) {
-            relevantSet = this._state.incomingNodes;
+    _sm_setParent(surfaceManager) {
+        this._parent = surfaceManager;
+    }
+
+    _sm_triggerEvent(name, context) {
+        switch (name) {
+            case 'connection':
+                this._update({nodeConnected: true})
+                break
         }
-        if (!relevantSet) throw new Error(`Invalid use of node connection`);
-
-        let hasEntry = relevantSet.has(node);
-
-        if (connected) {
-            if (hasEntry) throw new Error(`Node already connected`);
-            relevantSet.add(node);
-        } else {
-            if (!hasEntry) throw new Error(`Node not present`);
-            relevantSet.remove(node);
-        }
-        this._update({nodeConnected: true});
     }
 
     _update({nodeConnected = false}) {
 
+    }
+
+    /*
+        Serialization methods
+     */
+
+    /**
+     * Serializes the current object in a representable JSON from, so fromJSON is able to load the item
+     * @private
+     */
+    _sm_serialize() {
+        throw new Error('Must be implemented by extending class')
+    }
+
+    static fromJSON(json) {
+        throw new Error('Must be implemented by extending class')
     }
 
     constructor(title, id = uuid.v1(), parent = null) {

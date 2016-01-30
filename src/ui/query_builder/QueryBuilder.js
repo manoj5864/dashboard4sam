@@ -93,17 +93,38 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
         let lastElement = firstElement;
         for (let nextElement of cursor) {
-            let relationships = await QueryUtils.doTwoEntityTypesRelate(lastElement.id, nextElement.id);
-            console.log(relationships)
+            let relationships = await QueryUtils.doTwoEntityTypesRelate(lastElement.entityType.id, nextElement.entityType.id);
+
+            // Forward relationships
+            let relationshipNames = relationships
+                .filter(it=>it.id==lastElement.entityType.id)
+                .map(it=>it.relations)
+                .reduce((a,b)=> a.concat(b))
+                .map(it=>it.name);
+
+            let query = `
+                query RelatedElements {
+                    entity(typeId: "${firstElement.entityType.id}") {
+                        links(names: ${JSON.stringify(relationshipNames)}) {
+                            id
+                            name
+                            value {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+            `
+            let queryResult = await app.socioCortexManager.executeQuery(query);
+            console.log(queryResult);
+
+            // Reverse relationships
+
             lastElement = nextElement;
         }
 
-        let query = `
-        query EntityRelationshipQuery {
-            entity(typeId: ${firstElement.entityType.id}) {
-            }
-        }
-        `
+
     }
 
     render() {
@@ -122,7 +143,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                 <a href="#">Analytics</a>
                                 <ul className="submenu">
                                     <li><a href="#" onClick={this._handleSankeyClick.bind(this)}>Sankey</a></li>
-                                    <li><a hreF="#">Tree Explorer</a></li>
+                                    <li><a href="#">Tree Explorer</a></li>
                                 </ul>
                             </li>
                         </ul>
