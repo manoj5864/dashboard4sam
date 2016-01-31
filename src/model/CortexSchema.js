@@ -11,6 +11,14 @@ import {
 } from 'graphql';
 import {SocioCortexEntity} from '../service/api/SocioCortexApi'
 
+class CortexSchema {
+
+    constructor(cortexWorkspace) {
+
+    }
+
+}
+
 let schemaFunc = (cortexWorkspace) => {
 
     let entityReference = new GraphQLObjectType({
@@ -200,7 +208,6 @@ let schemaFunc = (cortexWorkspace) => {
     });
     let entityList = new GraphQLList(entity);
 
-
     let _entitySchema = new GraphQLSchema({
         query: new GraphQLObjectType({
             name: 'Query',
@@ -211,6 +218,11 @@ let schemaFunc = (cortexWorkspace) => {
                         id: {
                             description: 'ID of the entity to look for',
                             type: GraphQLString,
+                            defaultValue: null
+                        },
+                        idList: {
+                            description: 'List of entity ID to look for',
+                            type: new GraphQLList(GraphQLString),
                             defaultValue: null
                         },
                         typeId: {
@@ -231,14 +243,15 @@ let schemaFunc = (cortexWorkspace) => {
                             }))
                         }
                     },
-                    resolve: async (root, {id, typeId, type, attributes}) => {
+                    resolve: async (root, {id, idList, typeId, type, attributes}) => {
                         // No restrictions were requested
-                        if (!(id || typeId || type || attributes)) { return cortexWorkspace.getEntities() }
+                        if (!(id || typeId || type || attributes || idList)) { return cortexWorkspace.getEntities() }
                         let entities = await cortexWorkspace.getEntities();
                         return entities.filter((entity) => {
                             if (typeId && !(entity.entityType.id == typeId)) {return false;}
                             if (type && !(entity.entityType.name == type)) {return false;}
                             if (id && !(entity.id == id)) { return false; }
+                            if (idList && (!(idList.indexOf(entity.id) >= 0))) { return false; }
                             if (attributes) {
                                 for (let a of attributes) {
                                     let isQualified = entity.attributes.some((attr) => {
@@ -289,4 +302,6 @@ let schemaFunc = (cortexWorkspace) => {
 
     return _entitySchema
 };
-export {schemaFunc as schema}
+export {
+    schemaFunc as schema
+}

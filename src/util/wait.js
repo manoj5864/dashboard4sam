@@ -13,3 +13,12 @@ export async function waitFor(expression, sleepTime = 500, maxTries = 1000) {
     }
     return true;
 }
+
+export class Deferred {
+    constructor() {
+        this.promise = new Promise((resolve, reject)=> {
+            this.reject = reject
+            this.resolve = resolve
+        })
+    }
+}

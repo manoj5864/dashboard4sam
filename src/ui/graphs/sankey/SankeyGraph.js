@@ -26,12 +26,12 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
     node2.addConnectedNode(node3)
     node3.addConnectedNode(node4)
 
-    new SankeySurfaceManager(this._svgElement, {nodeList: [node1,node2,node3, node4]})
+    this._sankeySurfaceManager = new SankeySurfaceManager(this._svgElement, {nodeList: [node1,node2,node3, node4]})
   }
 
   render() {
     return (
-        <svg width="1000" height="800" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
         </svg>
     )
   }

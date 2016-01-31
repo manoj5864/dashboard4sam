@@ -10,11 +10,17 @@ import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
 import {EntityTypeDetails} from '../../../ui/query_builder/dialog/EntityTypeDetails'
 import {CompletenessStatsView} from '../../../ui/graphs/CompletenessStats'
 import {ColorPicker} from '../../main/widgets/util/ColorPicker'
+import {Deferred} from '../../../util/wait'
+import {default as _} from 'lodash'
 
 let React = window.React;
 
 class EntityTypeInformation {
+    get name() {}
     get amountOfElements() {}
+    constructor() {
+
+    }
 }
 
 class QueryBuilderReactElement extends GraphReactComponent {
@@ -25,71 +31,58 @@ class QueryBuilderReactElement extends GraphReactComponent {
             showAddProperty: false,
             knownAttributes: [],
             amountOfElements: 0,
+
+            // Current color
+            color: props.color,
+
             isSelected: false,
             isLoading: false,
-            color: props.color
         };
     }
 
+    //<editor-fold desc="React related">
     static get defaultProps() {
         return {
-            name: 'Default Name',
             color: '#5fbeaa',
-            entityObject: {
-                id: null,
-                name: ''
-            },
-            entityObjectProvider: () => { return ['Abcde'] }
+            entityProvider: {
+                name: () => { return 'Default Name' },
+                amountOfEntities: async () => { return 0; }
+            }
         }
-    }
-
-    _setSelected(val) {
-        this.setState({
-            isSelected: val
-        })
     }
 
     componentWillMount() {
         this._refresh();
     }
 
-    async _refreshAmount() {
-
-    }
-
-    async _refresh() {
-        this.setState({isLoading: true});
-        let attributes = app.socioCortexManager.executeQuery(`
-            query EntityAttributes {
-                type(id: "${this.props.entityObject.id}") {
-                    attributes {
-                        name
-                        type
-                    }
-                }
-            }
-        `);
-
-        let entityAmount = QueryUtils.amountOfEntities({
-            type: this.props.entityObject.name
-        });
-
-
-        // Set states
-        let resultAttributes = await attributes;
-
-        this.setState({
-            knownAttributes: resultAttributes.data.type[0].attributes,
-            amountOfElements: await entityAmount,
-            isLoading: false
-        });
-    };
-
     _buildStyle() {
         let res = {width: '200px'};
         if (this.state.isSelected) res.borderWidth = '4px';
         return res;
     }
+    //</editor-fold>
+
+    //<editor-fold desc="SurfaceManager Events">
+    _setSelected(val) {
+        this.setState({
+            isSelected: val
+        })
+    }
+    //</editor-fold>
+
+
+    async _refresh() {
+        this.setState({isLoading: true});
+
+        let amountOfEntities = await this.props.entityProvider.amountOfEntities();
+
+        this.setState({
+            //knownAttributes: ,
+            amountOfElements: amountOfEntities,
+            isLoading: false
+        });
+    };
+
 
 
     render() {
@@ -150,7 +143,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 {renderLoader()}
                 <div className="panel-heading" style={{borderColor: this.state.color, color: this.state.color}}>
                     <h3 className="panel-title" style={{color: this.state.color}}>
-                        {this.props.entityObject.name}
+                        {this.props.entityProvider.name()}
                     </h3>
                 </div>
                 <div className="panel-body">
@@ -170,10 +163,6 @@ class QueryBuilderReactElement extends GraphReactComponent {
             </div>
         )
     }
-
-    /*
-
-     */
 }
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
@@ -182,6 +171,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         return this._refObject;
     }
 
+    //<editor-fold desc="SurfaceManager Events">
     _setSelected(val) {
         this._reactDomElement._setSelected(val)
     }
@@ -201,30 +191,59 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
+    //</editor-fold>
 
     async _getElements() {
         // Already retrieving the data
         if (this._state.promiseWaitingForEntities) return this._state.promiseWaitingForEntities;
         if (this._state.cachedEntities) return this._state.cachedEntities;
 
+        let deferred = new Deferred();
+        this._state.promiseWaitingForEntities = deferred.promise;
+
         let incomingNodes = this._sm_getIncomingNodes();
-        if (incomingNodes.size == 0) {
+        if ((!incomingNodes) || (incomingNodes.size == 0)) {
             // Beginning node
             let entities = await QueryUtils.entities({
-                type: this.props.entityObject.name
+                type: this.entityType.name
             });
-            this._state.cachedEntities = entities;
-            console.log(entities);
-            return entities;
+            this._state.cachedEntities = entities.entity;
+            deferred.resolve(entities.entity);
+            this._state.promiseWaitingForEntities = null;
+            return entities.entity;
         } else {
             // Connected node
+            let nodeMap = new Map();
             let promisesForIncomingElements = [];
+            this.debug("Asking incoming nodes for entities..")
             for (let node of incomingNodes) {
                 let fromNode = node[0];
-                promisesForIncomingElements.push(fromNode._getElements());
+                let promise = fromNode._getElements();
+                promisesForIncomingElements.push(promise);
+                nodeMap.set(fromNode, promise);
             }
             let res = await Promise.all(promisesForIncomingElements)
-            console.log(res);
+            this.debug("Entities retrieved")
+
+            let entities = [];
+            for (let key of nodeMap.keys()) {
+                let typeSource = key.entityType.id;
+                let typeTarget = this.entityType.id;
+                let sourceElements = await nodeMap.get(key);
+                let res = await QueryUtils.getElementsInRelationship(
+                    {typeIdSource: typeSource},
+                    sourceElements,
+                    {typeIdTarget: typeTarget}
+                )
+                for (let val of res.values()) {
+                    entities = entities.concat([...val]);
+                }
+                entities = _.uniq(entities).map(it=>{return {id: it}});
+            }
+            this._state.cachedEntities = entities;
+            deferred.resolve(entities);
+            this._state.promiseWaitingForEntities = null;
+            return entities;
         }
     }
 
@@ -232,18 +251,39 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         if (nodeConnected) {
             if (context.incoming) {
                 this.debug(`Incoming connection added`)
-                this._getElements();
-
+                debugger;
+                this._refresh()
             }
         }
     }
 
     _refresh() {
-
+        // Clear cache
+        this._state.cachedEntities = null;
+        // Trigger following elements
+        let outgoingNodes = this._sm_getOutgoingNodes();
+        if (outgoingNodes && outgoingNodes.length > 0) {
+            // Trigger following nodes, since they will trigger me
+            for (let node of outgoingNodes) {
+                node._refresh();
+            }
+        } else {
+            // Update myself only
+            this._reactDomElement._refresh();
+        }
     }
 
     addRelation(queryBuilderNodeElement) {
 
+    }
+
+    _buildEntityProvider() {
+        return {
+            name: () => this.entityType.name,
+            amountOfEntities: async () => {
+                return (await this._getElements()).length
+            }
+        }
     }
 
     constructor(reference) {
@@ -251,7 +291,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         this._refObject = reference;
         this._applyReactElement(
             <QueryBuilderReactElement
-            entityObject={this._refObject}/>
+                entityProvider={this._buildEntityProvider()}
+            />
         );
 
         this._state = {
