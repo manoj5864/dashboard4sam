@@ -143,7 +143,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 {renderLoader()}
                 <div className="panel-heading" style={{borderColor: this.state.color, color: this.state.color}}>
                     <h3 className="panel-title" style={{color: this.state.color}}>
-                        {this.props.entityObject.name}
+                        {this.props.entityProvider.name()}
                     </h3>
                 </div>
                 <div className="panel-body">
@@ -293,7 +293,6 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         }
     }
 
-    constructor(reference) {
     _sm_serialize() {
         return {
             id: this._id,
@@ -319,9 +318,10 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         this._color = color;
         this._applyReactElement(
             <QueryBuilderReactElement
-                entityProvider={this._buildEntityProvider()},
-            color={this._color}
-            updateColor={(newColor) => {this.color = newColor}}/>
+                entityProvider={this._buildEntityProvider()}
+                color={this._color}
+                updateColor={(newColor) => {this.color = newColor}}
+            />
         );
 
         this._state = {
