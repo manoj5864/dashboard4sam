@@ -75,6 +75,7 @@ export class GraphHelper {
     }
 
     add(from, to){
+        debugger;
         const hasFrom = this._vertexlist.has(from);
         const hasTo = this._vertexlist.has(to);
         this._vertexlist.add(from);
@@ -99,10 +100,26 @@ export class GraphHelper {
         }
 
         if (this._state.preventCyclicalGraph) {
-            let dag = [...this.toDAG()];
-            if ((dag.length == 1) && (dag[0][0] == from) && (dag[0][1] == to)) {
-               return true;
-            } else {
+            let vertexMap = new Map();
+
+            this._vertexlist.forEach(it=>vertexMap.set(it, new Vertex(it.id)));
+            let graph = {
+                vertices: []
+            }
+            vertexMap.forEach((value)=>graph.vertices.push(value));
+            this._outgoing.forEach((value, key) => {
+                let graphElement = vertexMap.get(key);
+                value.forEach(it => {
+                    graphElement.connections.push(vertexMap.get(it[1]));
+                })
+            })
+
+            // Check for cycles
+            let tarjan = new Tarjan(graph);
+            let cons = tarjan.run();
+
+            let hasCycles = cons.some(it=>it.length > 1)
+            if (hasCycles) {
                 this.reverse();
                 return false;
             }
@@ -185,5 +202,95 @@ export class GraphHelper {
 
 }
 
+class Vertex {
+
+    equals(it) {
+        return this == it;
+    }
+
+    constructor(id) {
+        this.id = id;
+        this.index = -1;
+        this.lowLink = -1;
+        this.connections = [];
+    }
+
+}
 
 
+class VertexStack {
+    constructor(vertices) {
+        this.vertices = vertices || [];
+    }
+
+    contains(vertex) {
+        for (var i in this.vertices){
+            if (this.vertices[i].equals(vertex)){
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class Tarjan {
+
+    run() {
+        for (var i in this.graph.vertices){
+            if (this.graph.vertices[i].index<0){
+                this.strongconnect(this.graph.vertices[i]);
+            }
+        }
+        return this.scc;
+    }
+
+    strongconnect(vertex) {
+        // Set the depth index for v to the smallest unused index
+        vertex.index = this.index;
+        vertex.lowlink = this.index;
+        this.index = this.index + 1;
+        this.stack.vertices.push(vertex);
+
+        // Consider successors of v
+        // aka... consider each vertex in vertex.connections
+        for (var i in vertex.connections){
+            var v = vertex;
+            var w = vertex.connections[i];
+            if (w.index<0){
+                // Successor w has not yet been visited; recurse on it
+                this.strongconnect(w);
+                v.lowlink = Math.min(v.lowlink,w.lowlink);
+            } else if (this.stack.contains(w)){
+                // Successor w is in stack S and hence in the current SCC
+                v.lowlink = Math.min(v.lowlink,w.index);
+            }
+        }
+
+        // If v is a root node, pop the stack and generate an SCC
+        if (vertex.lowlink==vertex.index){
+            // start a new strongly connected component
+            var vertices = [];
+            var w = null;
+            if (this.stack.vertices.length>0){
+                do {
+                    w = this.stack.vertices.pop();
+                    // add w to current strongly connected component
+                    vertices.push(w);
+                } while (!vertex.equals(w));
+            }
+            // output the current strongly connected component
+            // ... i'm going to push the results to a member scc array variable
+            if (vertices.length>0){
+                this.scc.push(vertices);
+            }
+        }
+    }
+
+    constructor(graph) {
+        this.index = 0;
+        this.stack = new VertexStack();
+        this.graph = graph;
+        this.scc = [];
+    }
+
+}
