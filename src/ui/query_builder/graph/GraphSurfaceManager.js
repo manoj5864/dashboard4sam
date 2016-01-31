@@ -47,7 +47,15 @@ export class GraphConfiguration {
                 type: 'QueryBuilderNodeElement',
                 x: 12345,
                 y: 12355,
-                color: "#aabbcc"
+                color: "#aabbcc",
+                grouping: "category",
+                filters: [
+                    {
+                        name: "description",
+                        regex: "test.*bla$",
+                        invert: false
+                    }, ...
+                ]
                 data: <JSON of element>
             }
         ]
@@ -57,7 +65,11 @@ export class GraphConfiguration {
         console.assert(elements instanceof Array, 'Config "elements" needs to be an Array');
         console.assert(
             elements.map(elem => {
-                return !!(elem.id && elem.type && (elem.x || elem.x === 0) && (elem.y ||elem.y === 0) && elem.color && elem.data)
+                return !!(
+                    elem.id && elem.type &&
+                    (elem.x || elem.x === 0) && (elem.y ||elem.y === 0) &&
+                    elem.color && (elem.grouping || elem.grouping === '') && elem.filters && elem.data
+                )
             }).reduce((prev, current) => { return prev && current }, true),
             'Not all element details present'
         );
