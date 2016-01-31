@@ -75,7 +75,6 @@ export class GraphHelper {
     }
 
     add(from, to){
-        debugger;
         const hasFrom = this._vertexlist.has(from);
         const hasTo = this._vertexlist.has(to);
         this._vertexlist.add(from);

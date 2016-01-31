@@ -56,7 +56,7 @@ export class GraphConfiguration {
         console.assert(elements instanceof Array, 'Config "elements" needs to be an Array');
         console.assert(
             elements.map(elem => {
-                return !!(elem.id && elem.type && elem.x && elem.z && elem.data)
+                return !!(elem.id && elem.type && (elem.x || elem.x === 0) && (elem.y ||elem.y === 0) && elem.data)
             }).reduce((prev, current) => { return prev && current }, true),
             'Not all element details present'
         );
@@ -73,6 +73,10 @@ export class GraphConfiguration {
     set surfaceState(val) {
         if (!val.zoom || !val.cameraState) throw new Error('Insufficient state provided')
         //TODO: where do the values come from?
+    }
+
+    toJSON() {
+        return JSON.stringify(this._json);
     }
 
     constructor(json) {
@@ -261,26 +265,43 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             let from = this._state.connectOperation.startNode;
             let to = this._state.connectOperation.endNode;
 
-            // Only add connection if acknowledged
-            this.debug(`Waiting for response of ${this._state.events.connectionEvents.length} acknowledgements...`);
-            let promiseOfConnectionAck = await Promise.all(this._state.events.connectionEvents.map(it=>it({from:from, to:to})));
-            this.debug(`Received acknowledgements, State: ${promiseOfConnectionAck}`);
+            await this.addConnection(from, to);
+        }
+    }
 
-            if (promiseOfConnectionAck.every(it=>it)) {
-                let res = this._state.graphManager.add(from, to);
+    async addConnection(from, to) {
+        // Only add connection if acknowledged
+        this.debug(`Waiting for response of ${this._state.events.connectionEvents.length} acknowledgements...`);
+        let promiseOfConnectionAck = await Promise.all(this._state.events.connectionEvents.map(it=>it({from:from, to:to})));
+        this.debug(`Received acknowledgements, State: ${promiseOfConnectionAck}`);
 
-                if (!res) this.warn(`Cyclic graph detected`)
+        if (promiseOfConnectionAck.every(it=>it)) {
+            let res = this._state.graphManager.add(from, to);
 
-                // Clear connect operation
-                this._state.connectOperation.startNode = null;
-                this._state.connectOperation.endNode = null;
-                if (res) {
-                    this._update();
-                    from._sm_triggerEvent('connection', {outgoing: true, incoming: false});
-                    to._sm_triggerEvent('connection', {outgoing: false, incoming: true});
-                }
+            if (!res) this.warn(`Cyclic graph detected`);
+
+            // Clear connect operation
+            this._state.connectOperation.startNode = null;
+            this._state.connectOperation.endNode = null;
+            if (res) {
+                this._update();
+                from._sm_triggerEvent('connection', {outgoing: true, incoming: false});
+                to._sm_triggerEvent('connection', {outgoing: false, incoming: true});
             }
         }
+    }
+
+    async addConnections(connections) {
+        let promises = connections.map(connection => {
+            const from = this.getNodeById(connection.from);
+            const to = this.getNodeById(connection.to);
+            return this.addConnection(from, to);
+        });
+        await Promise.all(promises);
+    }
+
+    getNodeById(uuid) {
+        return this._state.nodeList.find(elem => {return elem.id === uuid});
     }
 
     _update() {
@@ -377,7 +398,6 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
 
     serialize() {
         let result = new GraphConfiguration();
-
         const outgoings = this._state.nodeList
             .map(node => {return node._sm_getOutgoingNodes()})
             .filter(entries => {return !!entries});
@@ -390,12 +410,21 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
         result.connections = connections;
         result.elements = this._state.nodeList
             .map(node => {return node._sm_serialize()});
-        debugger;
         return result;
     }
 
-    static fromJSON(json, nodeType) {
-        nodeType.fromJSON();
+    async fromJSON(json, nodeType) {
+        const config = JSON.parse(json);
+        const type = nodeType.name;
+        console.assert(
+            config.elements
+                .map(elem => {return elem.type})
+                .reduce((prev, curr) => {return prev && (curr === type)}, true),
+            'Not all element types in config are ' + type
+        );
+        const elements = config.elements.map(elem => {return nodeType.fromJSON(elem)});
+        this.addNodes(elements);
+        await this.addConnections(config.connections);
     }
 
     constructor(element, existingNodes = null, connectionList = null) {

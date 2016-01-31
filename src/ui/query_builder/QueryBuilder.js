@@ -127,6 +127,15 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
     }
 
+    _logState() {
+        console.log(this._surfaceManager.serialize().toJSON());
+    }
+
+    async _importState() {
+        const configString = prompt("Enter JSON config");
+        await this._surfaceManager.fromJSON(configString, QueryBuilderNodeElement);
+    }
+
     render() {
         return (
             <div>
@@ -144,6 +153,13 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                 <ul className="submenu">
                                     <li><a href="#" onClick={this._handleSankeyClick.bind(this)}>Sankey</a></li>
                                     <li><a href="#">Tree Explorer</a></li>
+                                </ul>
+                            </li>
+                            <li className="has-submenu">
+                                <a href="#">Debugging</a>
+                                <ul className="submenu">
+                                    <li><a href="#" onClick={this._logState.bind(this)}>Log State</a></li>
+                                    <li><a href="#" onClick={this._importState.bind(this)}>Import State</a></li>
                                 </ul>
                             </li>
                         </ul>

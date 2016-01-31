@@ -256,6 +256,14 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         }
     }
 
+    static fromJSON(jsonObject) {
+        let result = new QueryBuilderNodeElement(jsonObject.data);
+        result._id = jsonObject.id;
+        result._x = jsonObject.x;
+        result._y = jsonObject.y;
+        return result;
+    }
+
     constructor(reference) {
         super();
         this._refObject = reference;
