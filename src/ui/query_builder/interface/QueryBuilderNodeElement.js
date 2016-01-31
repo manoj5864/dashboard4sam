@@ -16,11 +16,7 @@ import {default as _} from 'lodash'
 let React = window.React;
 
 class EntityTypeInformation {
-    get name() {}
     get amountOfElements() {}
-    constructor() {
-
-    }
 }
 
 class QueryBuilderReactElement extends GraphReactComponent {
@@ -31,23 +27,22 @@ class QueryBuilderReactElement extends GraphReactComponent {
             showAddProperty: false,
             knownAttributes: [],
             amountOfElements: 0,
-
-            // Current color
-            color: props.color,
-
             isSelected: false,
             isLoading: false,
+            color: props.color
         };
     }
 
     //<editor-fold desc="React related">
     static get defaultProps() {
         return {
+            name: 'Default Name',
             color: '#5fbeaa',
             entityProvider: {
                 name: () => { return 'Default Name' },
                 amountOfEntities: async () => { return 0; }
-            }
+            },
+            updateColor: (newColor) => {}
         }
     }
 
@@ -70,6 +65,10 @@ class QueryBuilderReactElement extends GraphReactComponent {
     }
     //</editor-fold>
 
+    componentWillMount() {
+        this._refresh();
+        this.props.updateColor(this.props.color);
+    }
 
     async _refresh() {
         this.setState({isLoading: true});
@@ -115,6 +114,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         const pickColor = async ()=>{
             const newColor = await ColorPicker.getColor(this.state.color);
             console.log(`Set new color ${newColor}`);
+            this.props.updateColor(newColor);
             this.setState({color: newColor})
         };
 
@@ -143,7 +143,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 {renderLoader()}
                 <div className="panel-heading" style={{borderColor: this.state.color, color: this.state.color}}>
                     <h3 className="panel-title" style={{color: this.state.color}}>
-                        {this.props.entityProvider.name()}
+                        {this.props.entityObject.name}
                     </h3>
                 </div>
                 <div className="panel-body">
@@ -166,6 +166,14 @@ class QueryBuilderReactElement extends GraphReactComponent {
 }
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
+
+    get color() {
+        return this._color
+    }
+
+    set color(color) {
+        this._color = color
+    }
 
     get entityType() {
         return this._refObject;
@@ -251,7 +259,6 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         if (nodeConnected) {
             if (context.incoming) {
                 this.debug(`Incoming connection added`)
-                debugger;
                 this._refresh()
             }
         }
@@ -287,12 +294,34 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     }
 
     constructor(reference) {
+    _sm_serialize() {
+        return {
+            id: this._id,
+            type: 'QueryBuilderNodeElement',
+            x: this._x,
+            y: this._y,
+            color: this._color,
+            data: this._refObject
+        }
+    }
+
+    static fromJSON(jsonObject) {
+        let result = new QueryBuilderNodeElement(jsonObject.data, jsonObject.color);
+        result._id = jsonObject.id;
+        result._x = jsonObject.x;
+        result._y = jsonObject.y;
+        return result;
+    }
+
+    constructor(reference, color = undefined) {
         super();
         this._refObject = reference;
+        this._color = color;
         this._applyReactElement(
             <QueryBuilderReactElement
-                entityProvider={this._buildEntityProvider()}
-            />
+                entityProvider={this._buildEntityProvider()},
+            color={this._color}
+            updateColor={(newColor) => {this.color = newColor}}/>
         );
 
         this._state = {
