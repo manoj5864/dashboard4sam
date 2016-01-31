@@ -39,6 +39,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 id: null,
                 name: ''
             },
+            updateColor: (newColor) => {},
             entityObjectProvider: () => { return ['Abcde'] }
         }
     }
@@ -51,6 +52,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
     componentWillMount() {
         this._refresh();
+        this.props.updateColor(this.props.color);
     }
 
     async _refreshAmount() {
@@ -122,6 +124,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         const pickColor = async ()=>{
             const newColor = await ColorPicker.getColor(this.state.color);
             console.log(`Set new color ${newColor}`);
+            this.props.updateColor(newColor);
             this.setState({color: newColor})
         };
 
@@ -177,6 +180,14 @@ class QueryBuilderReactElement extends GraphReactComponent {
 }
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
+
+    get color() {
+        return this._color
+    }
+
+    set color(color) {
+        this._color = color
+    }
 
     get entityType() {
         return this._refObject;
@@ -252,24 +263,28 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             type: 'QueryBuilderNodeElement',
             x: this._x,
             y: this._y,
+            color: this._color,
             data: this._refObject
         }
     }
 
     static fromJSON(jsonObject) {
-        let result = new QueryBuilderNodeElement(jsonObject.data);
+        let result = new QueryBuilderNodeElement(jsonObject.data, jsonObject.color);
         result._id = jsonObject.id;
         result._x = jsonObject.x;
         result._y = jsonObject.y;
         return result;
     }
 
-    constructor(reference) {
+    constructor(reference, color = undefined) {
         super();
         this._refObject = reference;
+        this._color = color;
         this._applyReactElement(
             <QueryBuilderReactElement
-            entityObject={this._refObject}/>
+            entityObject={this._refObject}
+            color={this._color}
+            updateColor={(newColor) => {this.color = newColor}}/>
         );
 
         this._state = {
