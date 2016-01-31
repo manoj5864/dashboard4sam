@@ -155,7 +155,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 </div>
                 <div className="panel-body">
                     <p>
-                        Amount: {this.state.amountOfElements}
+                        Amount: {this.state.amountOfElements}<br/>
+                        Group By: <span style={{color: 'lightgray'}}>(Nothing)</span>
                     </p>
                 </div>
                 <div className="panel-footer">
@@ -201,14 +202,39 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
 
+    async _getElements() {
+        // Already retrieving the data
+        if (this._state.promiseWaitingForEntities) return this._state.promiseWaitingForEntities;
+        if (this._state.cachedEntities) return this._state.cachedEntities;
+
+        let incomingNodes = this._sm_getIncomingNodes();
+        if (incomingNodes.size == 0) {
+            // Beginning node
+            let entities = await QueryUtils.entities({
+                type: this.props.entityObject.name
+            });
+            this._state.cachedEntities = entities;
+            console.log(entities);
+            return entities;
+        } else {
+            // Connected node
+            let promisesForIncomingElements = [];
+            for (let node of incomingNodes) {
+                let fromNode = node[0];
+                promisesForIncomingElements.push(fromNode._getElements());
+            }
+            let res = await Promise.all(promisesForIncomingElements)
+            console.log(res);
+        }
+    }
+
     _update({nodeConnected = false} = {}, context) {
         if (nodeConnected) {
             if (context.incoming) {
                 this.debug(`Incoming connection added`)
-                let incomingNodes = this._sm_getIncomingNodes();
+                this._getElements();
 
             }
-
         }
     }
 
@@ -239,7 +265,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         );
 
         this._state = {
-            promiseWaitingForEntities: null
+            promiseWaitingForEntities: null,
+            cachedEntities: null
         };
     }
 

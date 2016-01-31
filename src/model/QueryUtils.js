@@ -51,4 +51,23 @@ export class QueryUtils {
 
     }
 
+    static async getElementsInRelationship(
+        /*Source Type*/{typeIdSource = null} = {},
+        /*Source Elements*/sourceElements = [],
+        /*Target Type*/{typeIdTarget = null} = {}
+    ) {
+        // Retrieve relationship
+        if (sourceElements.length == 0) throw new Error('No elements were provided')
+        if ( !typeIdSource || typeIdTarget ) throw new Error('Type IDs must be present')
+        let relationships = await QueryUtils.doTwoEntityTypesRelate(typeIdSource, typeIdTarget)
+
+        if (!relationships) throw new Error('No relationships could be determined');
+
+        // Normal relationships
+        debugger;
+
+        // Reverse relationships
+
+    }
+
 }

@@ -23,6 +23,7 @@ export class ReactNodeElement extends NodeElement {
         this._reactDomElement = ReactDOM.render(this._reactElement, divContainer);
         this._reactDomElement.addUpdateHook(() => {
             let domNode = ReactDOM.findDOMNode(this._reactDomElement);
+            this._reactDomNode = domNode;
             let height = $(domNode).outerHeight();
             let width = $(domNode).outerWidth();
 

@@ -269,13 +269,16 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
             if (promiseOfConnectionAck.every(it=>it)) {
                 let res = this._state.graphManager.add(from, to);
 
-                from._sm_triggerEvent('connection', {outgoing: true, incoming: false});
-                to._sm_triggerEvent('connection', {outgoing: false, incoming: true});
+                if (!res) this.warn(`Cyclic graph detected`)
 
                 // Clear connect operation
                 this._state.connectOperation.startNode = null;
                 this._state.connectOperation.endNode = null;
-                if (res) this._update();
+                if (res) {
+                    this._update();
+                    from._sm_triggerEvent('connection', {outgoing: true, incoming: false});
+                    to._sm_triggerEvent('connection', {outgoing: false, incoming: true});
+                }
             }
         }
     }
