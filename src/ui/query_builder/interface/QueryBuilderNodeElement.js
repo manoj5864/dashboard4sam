@@ -12,6 +12,7 @@ import {CompletenessStatsView} from '../../../ui/graphs/CompletenessStats'
 import {ColorPicker} from '../../main/widgets/util/ColorPicker'
 import {Deferred} from '../../../util/wait'
 import {default as _} from 'lodash'
+import {Select} from '../../main/widgets/forms/Select'
 
 let React = window.React;
 
@@ -26,11 +27,13 @@ class QueryBuilderReactElement extends GraphReactComponent {
         this.state = {
             showAddProperty: false,
             knownAttributes: [],
+            knownLinks: [],
             amountOfElements: 0,
             isSelected: false,
             isLoading: false,
             color: props.color
         };
+        this._firstUpdate = true;
     }
 
     //<editor-fold desc="React related">
@@ -72,13 +75,50 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
     async _refresh() {
         this.setState({isLoading: true});
+        let attributes = app.socioCortexManager.executeQuery(`
+            query EntityAttributesAndLinks {
+                type(id: "${this.props.entityObject.id}") {
+                    attributes {
+                        name
+                        type
+                    }
+                }
+            }
+        `);
 
         let amountOfEntities = await this.props.entityProvider.amountOfEntities();
+        let links = app.socioCortexManager.executeQuery(`
+            query EntityAttributesAndLinks {
+                type(id: "${this.props.entityObject.id}") {
+                    attributes(includeLinks: true, onlyLinks: true) {
+                        name
+                        type
+                    }
+                }
+            }
+        `);
 
+        // Set states
+        const tempAttributes = await attributes;
+        const tempLinks = await links;
+        const resultAttributes = tempAttributes.data.type[0].attributes;
+        const resultLinks = tempLinks.data.type[0].attributes;
+
+        let index = null;
+        const options = resultAttributes.concat(resultLinks).map(it=>it.name);
+        if (this._firstUpdate && this.props.grouping) {
+            index = options.indexOf(this.props.grouping) + 1;
+            this._firstUpdate = false;
+        }
         this.setState({
             //knownAttributes: ,
             amountOfElements: amountOfEntities,
             isLoading: false
+            knownAttributes: resultAttributes,
+            knownLinks: resultLinks,
+            isLoading: false,
+            groupingOptions: options,
+            groupingIndex: 0 || index
         });
     };
 
@@ -86,7 +126,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
     render() {
         let renderOptions = () => {
-            return this.state.knownAttributes.map(it=><option>{it.name}</option>)
+            return [{name:'name'}].concat(this.state.knownAttributes)
+                .map(it=><option>{it.name}</option>);
         };
 
         let addProperty = () =>{
@@ -98,8 +139,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
                                 <td><select>{renderOptions()}</select></td>
                             </tr>
                             <tr>
-                                <td><input type="text" /></td>
-                                <td><button onClick={it=>this.setState({showAddProperty: false})}>+</button></td>
+                                <td><input type="text" style={{width: '150px'}} /></td>
+                                <td><button onClick={it=>this.setState({showAddProperty: false})}>-</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -136,8 +177,9 @@ class QueryBuilderReactElement extends GraphReactComponent {
                     </div>
                 </div>
             );
-        }
-
+        };
+        const selectChange = (i) => {this.setState({groupingIndex: i})};
+        const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
         return (
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
                 {renderLoader()}
@@ -149,7 +191,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                 <div className="panel-body">
                     <p>
                         Amount: {this.state.amountOfElements}<br/>
-                        Group By: <span style={{color: 'lightgray'}}>(Nothing)</span>
+                        Group by:<Select change={selectChange} style={{width:'150px'}} index={this.state.groupingIndex}>{renderGrouping}</Select>
                     </p>
                 </div>
                 <div className="panel-footer">
@@ -157,8 +199,9 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={it=>this.setState({showAddProperty: true})}>Add</button>
-                    <button onClick={pickColor}>Color</button>
+                    <button onClick={it=>this.setState({showAddProperty: true})}>Add Filter</button>
+                    <br/>
+                    <button onClick={pickColor}>Select Color</button>
                 </div>
             </div>
         )
@@ -173,6 +216,12 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
 
     set color(color) {
         this._color = color
+    }
+
+    get grouping() {
+        const state = this._reactDomElement.state;
+        if (!state.groupingIndex) return "";
+        return state.groupingOptions[state.groupingIndex-1]
     }
 
     get entityType() {
@@ -300,19 +349,21 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             x: this._x,
             y: this._y,
             color: this._color,
+            grouping : this.grouping,
+            filters: [],
             data: this._refObject
         }
     }
 
     static fromJSON(jsonObject) {
-        let result = new QueryBuilderNodeElement(jsonObject.data, jsonObject.color);
+        let result = new QueryBuilderNodeElement(jsonObject.data, jsonObject.color, jsonObject.grouping);
         result._id = jsonObject.id;
         result._x = jsonObject.x;
         result._y = jsonObject.y;
         return result;
     }
 
-    constructor(reference, color = undefined) {
+    constructor(reference, color = undefined, grouping = undefined) {
         super();
         this._refObject = reference;
         this._color = color;
@@ -321,6 +372,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
                 entityProvider={this._buildEntityProvider()}
                 color={this._color}
                 updateColor={(newColor) => {this.color = newColor}}
+                grouping={grouping}/>
             />
         );
 
