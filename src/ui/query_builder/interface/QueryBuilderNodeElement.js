@@ -77,7 +77,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         this.setState({isLoading: true});
         let attributes = app.socioCortexManager.executeQuery(`
             query EntityAttributesAndLinks {
-                type(id: "${this.props.entityObject.id}") {
+                type(id: "${this.props.entityProvider.id()}") {
                     attributes {
                         name
                         type
@@ -89,7 +89,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         let amountOfEntities = await this.props.entityProvider.amountOfEntities();
         let links = app.socioCortexManager.executeQuery(`
             query EntityAttributesAndLinks {
-                type(id: "${this.props.entityObject.id}") {
+                type(id: "${this.props.entityProvider.id()}") {
                     attributes(includeLinks: true, onlyLinks: true) {
                         name
                         type
@@ -113,7 +113,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         this.setState({
             //knownAttributes: ,
             amountOfElements: amountOfEntities,
-            isLoading: false
+            isLoading: false,
             knownAttributes: resultAttributes,
             knownLinks: resultLinks,
             isLoading: false,
@@ -336,6 +336,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     _buildEntityProvider() {
         return {
             name: () => this.entityType.name,
+            id: () => this.entityType.id,
             amountOfEntities: async () => {
                 return (await this._getElements()).length
             }
@@ -372,7 +373,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
                 entityProvider={this._buildEntityProvider()}
                 color={this._color}
                 updateColor={(newColor) => {this.color = newColor}}
-                grouping={grouping}/>
+                grouping={grouping}
             />
         );
 
