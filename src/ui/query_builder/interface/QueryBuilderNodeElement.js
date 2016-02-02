@@ -25,7 +25,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
     constructor(props) {
         super();
         this.state = {
-            showAddProperty: false,
+            filters: [],
             knownAttributes: [],
             knownLinks: [],
             amountOfElements: 0,
@@ -116,13 +116,10 @@ class QueryBuilderReactElement extends GraphReactComponent {
             isLoading: false,
             knownAttributes: resultAttributes,
             knownLinks: resultLinks,
-            isLoading: false,
             groupingOptions: options,
             groupingIndex: 0 || index
         });
     };
-
-
 
     render() {
         let renderOptions = () => {
@@ -131,17 +128,22 @@ class QueryBuilderReactElement extends GraphReactComponent {
         };
 
         let addProperty = () =>{
-            if (this.state.showAddProperty) {
+            let filters = this.state.filters;
+            if (filters.length > 0) {
                 return (
                     <table>
                         <tbody>
+                        {filters.map((filter, i) => {
+                            return [
                             <tr>
                                 <td><select>{renderOptions()}</select></td>
-                            </tr>
+                            </tr>,
                             <tr>
                                 <td><input type="text" style={{width: '150px'}} /></td>
-                                <td><button onClick={it=>this.setState({showAddProperty: false})}>-</button></td>
+                                <td><button onClick={it=>" "}>-</button></td>
                             </tr>
+                            ]
+                        }).reduce((prev, curr) => {return prev.concat(curr)}, [])}
                         </tbody>
                     </table>
                 );
@@ -180,6 +182,11 @@ class QueryBuilderReactElement extends GraphReactComponent {
         };
         const selectChange = (i) => {this.setState({groupingIndex: i})};
         const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
+        const addFilter = () => {
+            let filters = this.state.filters;
+            filters.push({name:'',regex:'',invert:false});
+            this.setState({filters: filters});
+        };
         return (
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
                 {renderLoader()}
@@ -199,7 +206,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={it=>this.setState({showAddProperty: true})}>Add Filter</button>
+                    <button onClick={addFilter}>Add Filter</button>
                     <br/>
                     <button onClick={pickColor}>Select Color</button>
                 </div>
