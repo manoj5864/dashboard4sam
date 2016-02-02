@@ -132,11 +132,24 @@ export class GraphSurfaceManager extends mixin(null, TLoggable) {
                 }
                 return res;
             },
-            firstNodes:  () => {
+            startNodes:  () => {
                 let res = new Set();
-                for (let n of this._state.nodeList) {
+                let incomingNodes = this._state.graphManager.incoming;
+                for (let vertex of this._state.graphManager.vertices) {
+                    if (!(incomingNodes.get(vertex))) {
+                        res.add(vertex);
+                    }
                 }
                 return [...res];
+            },
+            outgoing: () => {
+                // Protect inner state -> Create copy
+                let outgoing = this._state.graphManager.outgoing;
+                let res = new Map();
+                outgoing.forEach((value, key) => {
+                    res.set(key, new Set([...value]));
+                });
+                return res;
             }
         }
     }

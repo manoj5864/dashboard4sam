@@ -9,7 +9,7 @@ import {default as store} from 'store'
 import {LoginWindow} from './ui/main/windows/LoginWindow'
 
 // Pages
-import {SankeyGraphPage} from './ui/graphs/sankey/SankeyGraph'
+import {SankeyGraphPage} from './ui/graphs/sankey/SankeyGraphPage'
 import {CompletenessStatsView} from './ui/graphs/CompletenessStats'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
 

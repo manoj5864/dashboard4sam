@@ -210,12 +210,18 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
 
-    get color() {
-        return this._color
-    }
-
-    set color(color) {
-        this._color = color
+    /**
+     * Externally provided information
+     * @returns {{name: name, color: color, amount: amount, elements: elements}}
+     */
+    information() {
+        return {
+            name: async () => this._refObject.name,
+            color: async () => this._color,
+            amount: async () => (await this._getElements()).length,
+            elements: async () => (await this._getElements()),
+            relations: async (node) => this._state.entityRelationMap.get(node)
+        }
     }
 
     get grouping() {
@@ -272,6 +278,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             // Connected node
             let nodeMap = new Map();
             let promisesForIncomingElements = [];
+            this._state.entityRelationMap = new Map();
             this.debug("Asking incoming nodes for entities..")
             for (let node of incomingNodes) {
                 let fromNode = node[0];
@@ -291,7 +298,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
                     {typeIdSource: typeSource},
                     sourceElements,
                     {typeIdTarget: typeTarget}
-                )
+                );
+                this._state.entityRelationMap.set(key, res);
                 for (let val of res.values()) {
                     entities = entities.concat([...val]);
                 }
@@ -372,14 +380,15 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             <QueryBuilderReactElement
                 entityProvider={this._buildEntityProvider()}
                 color={this._color}
-                updateColor={(newColor) => {this.color = newColor}}
+                updateColor={(newColor) => {this._color = newColor}}
                 grouping={grouping}
             />
         );
 
         this._state = {
             promiseWaitingForEntities: null,
-            cachedEntities: null
+            cachedEntities: null,
+            entityRelationMap: null
         };
     }
 

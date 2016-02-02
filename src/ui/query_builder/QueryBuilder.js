@@ -7,6 +7,7 @@ import {GraphSurfaceManager} from './graph/GraphSurfaceManager'
 import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
 import {QueryUtils} from '../../model/QueryUtils'
+import {SankeyGraphPage, SankeyNode} from '../graphs/sankey/SankeyGraphPage'
 
 //http://bl.ocks.org/cjrd/6863459
 
@@ -15,8 +16,13 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     constructor() {
         super();
         this.state = {
-            entityList: []
+            entityList: [],
+            activeView: null
         }
+        this._queryBuilderElement = (
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
+            </svg>
+        )
     }
 
     get name() {
@@ -75,56 +81,43 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     }
 
     async _handleSankeyClick() {
-        let unconnectedNodes = this._surfaceManager.state().unconnnectedNodes();
-        if (unconnectedNodes.length > 0) {
-            this.warn(`There may be no unconnected nodes when triggering computation`)
-            return;
-        }
+        // Prepare data
+        let sankeyNodeMap = new Map();
+        let outgoingConnections = this._surfaceManager.state().outgoing();
+        for (let key of outgoingConnections.keys()) {
+            let keyNode = sankeyNodeMap.get(key);
+            let keyValue = (await key.information().amount());
+            if (!keyNode) {
+                keyNode = new SankeyNode({
+                    groupName: (await key.information().name()),
+                    title: (await key.information().name()),
+                    color: (await key.information().color())
+                });
+                sankeyNodeMap.set(key, keyNode);
+            }
 
-        // Construct the query
-        let nodes = this._surfaceManager.state().firstNodes();
-        if (nodes.length != 1) {
-            this.warn(`Multiple start paths were discovered`);
-            return;
-        }
-
-        let firstElement = nodes[0];
-        let cursor = this._surfaceManager.state().path(firstElement);
-
-        let lastElement = firstElement;
-        for (let nextElement of cursor) {
-            let relationships = await QueryUtils.doTwoEntityTypesRelate(lastElement.entityType.id, nextElement.entityType.id);
-
-            // Forward relationships
-            let relationshipNames = relationships
-                .filter(it=>it.id==lastElement.entityType.id)
-                .map(it=>it.relations)
-                .reduce((a,b)=> a.concat(b))
-                .map(it=>it.name);
-
-            let query = `
-                query RelatedElements {
-                    entity(typeId: "${firstElement.entityType.id}") {
-                        links(names: ${JSON.stringify(relationshipNames)}) {
-                            id
-                            name
-                            value {
-                                id
-                                name
-                            }
-                        }
-                    }
+            for (let value of outgoingConnections.get(key)) {
+                value = value[1];
+                let valueNode = sankeyNodeMap.get(value);
+                if (!valueNode) {
+                    valueNode = new SankeyNode({
+                        groupName: (await value.information().name()),
+                        title: (await value.information().name()),
+                        color: (await value.information().color())
+                    });
+                    sankeyNodeMap.set(value, valueNode);
                 }
-            `
-            let queryResult = await app.socioCortexManager.executeQuery(query);
-            console.log(queryResult);
+                let valueValue = (await value.information().amount());
 
-            // Reverse relationships
+                keyNode.addConnectedNode(valueNode, keyValue + valueValue);
+            }
 
-            lastElement = nextElement;
         }
 
-
+        let sankeySvg = (<SankeyGraphPage nodes={[...sankeyNodeMap.values()]} />);
+        this.setState({
+            activeView: sankeySvg
+        });
     }
 
     _logState() {
@@ -165,8 +158,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                         </ul>
                     </div>
                 </div>
-                <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
-                </svg>
+                {this.state.activeView || this._queryBuilderElement}
             </div>
         )
     }

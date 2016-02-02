@@ -2,10 +2,6 @@ import {default as uuid} from 'node-uuid'
 
 export class SankeyNode {
 
-    static _handleDragMove(d) {
-
-    }
-
     _handleClick() {
 
     }
@@ -38,21 +34,17 @@ export class SankeyNode {
         return this._title
     }
 
-    get url() {
-        return this._url
+    get groupName() {
+        return this._groupName;
     }
 
-    get instanceName() {
-        return this._instanceName
-    }
-
-    constructor(instanceName, title = 'Unknown', url = 'Not provided', color = 'green') {
-        this._id = uuid.v1()
-        this._title = title
-        this._targets = []
-        this._url = url
-        this._color = color
-        this._instanceName = instanceName
+    constructor({groupName = 'Default', title = 'Unknown', url = 'Not provided', color = 'green'} = {}) {
+        this._id = uuid.v1();
+        this._title = title;
+        this._targets = [];
+        this._url = url;
+        this._color = color;
+        this._groupName = groupName;
     }
 
 }
