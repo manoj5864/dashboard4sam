@@ -4,7 +4,34 @@ import {SankeyNode} from './SankeyNode'
 import {legend} from '../util/d3-legend.js'
 
 
+
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
+
+//  var Queue = function() {
+//  var a = [];
+//  var b = 0;
+//  var getLength = function () {
+//    return a.length - b
+//  };
+//  isEmpty = function () {
+//    return 0 == a.length
+//  };
+//  enqueue = function (b) {
+//    a.push(b)
+//  };
+//  dequeue = function () {
+//    if (0 != a.length) {
+//      var c = a[b];
+//      2 * ++b >= a.length && (a = a.slice(b), b = 0);
+//      return c
+//    }
+//  };
+//  peek = function () {
+//    return 0 < a.length ? a[b] : void 0
+//  }
+//}
+
+
 
   constructor(svg, {allowZooming = true, allowPanning = false, alignHorizontal = false, nodeList = []}) {
     super()
@@ -14,6 +41,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
       allowPanning: allowPanning,
       alignHorizontal: alignHorizontal
     }
+
 
     nodeList.forEach((it) => {
       if (!(it instanceof SankeyNode)) {
@@ -86,10 +114,10 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
           return b.dy - a.dy;
         });
 
-    links.on("mouseover", function() {
+    links.on("mouseover", function () {
       d3.select(this)
           .style("stroke-opacity", .5)
-    }).on("mouseout", function() {
+    }).on("mouseout", function () {
       d3.select(this)
           .style("stroke-opacity", .2)
     })
@@ -195,22 +223,60 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
           .style("left", (d3.event.pageX - 250) + "px")
           .style("top", (d3.event.pageY - 100) + "px");
 
-      d3.selectAll("path")[0].forEach(function (x) {
-        var connectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
+      var connectedNodeNamesSet = getConnectedNodes(d);
 
-        connectedNodes.forEach(function (nodeEntry) {
-          if (nodeEntry === d._title) {
-            d3.select(x)
-                .style("stroke-opacity", .5)
-          }
-        })
+      d3.selectAll("path")[0].forEach(function (x){
+        var directConnectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
 
-      })
-      //}).on("mouseout", function() {
-      //    div.transition()
-      //        .duration(1000)
-      //        .style("opacity", 0);
+        if (connectedNodeNamesSet.has(directConnectedNodes[0]) || connectedNodeNamesSet.has(directConnectedNodes[1])) {
+          d3.select(x).style("stroke-opacity", .5)
+        }
+      });
+    }
 
+    function getConnectedNodes(targetNode) {
+      var node = null
+      var visitedNodes = new Set()
+      var visitedNodesNamesSet = new Set()
+      var nodesQueue = []
+      nodesQueue.push(targetNode)
+      visitedNodes.add(targetNode)
+
+      while (nodesQueue.length !== 0) {
+        node = nodesQueue.pop()
+        if (node.sourceLinks.length > 0) {
+          node.sourceLinks.forEach(function (link) {
+            if (!visitedNodes.has(link.source)) {
+              visitedNodes.add(link.source)
+              nodesQueue.push(link.source)
+              visitedNodesNamesSet.add(link.source._title)
+            }
+            if (!visitedNodes.has(link.target)) {
+              visitedNodes.add(link.target)
+              nodesQueue.push(link.target)
+              visitedNodesNamesSet.add(link.target._title)
+            }
+          })
+        }
+
+        if (node.targetLinks.length > 0) {
+          node.targetLinks.forEach(function (link) {
+            if (!visitedNodes.has(link.source)) {
+              visitedNodes.add(link.source)
+              nodesQueue.push(link.source)
+              visitedNodesNamesSet.add(link.source._title)
+            }
+            if (!visitedNodes.has(link.target)) {
+              visitedNodes.add(link.target)
+              nodesQueue.push(link.target)
+              visitedNodesNamesSet.add(link.target._title)
+            }
+          })
+        }
+      }
+
+      //debugger;
+      return visitedNodesNamesSet;
     }
 
     d3.selectAll(".tooltip").on("mousemove", function () {
@@ -264,7 +330,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
     if (this._options.allowZooming) {
       let zoom = d3.behavior.zoom()
-          .translate([width , margin.top]).scale(.6)
+          .translate([width, margin.top]).scale(.6)
           .on("zoom", () => {
             //if (d3.event.sourceEvent.shiftKey){
             //    // TODO  the internal d3 state is still changing
@@ -273,7 +339,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             //    //this._handleSurfaceZoom()
 
             if (!this._options.alignHorizontal) {
-                d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")rotate(90)")
+              d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")rotate(90)")
             } else {
               d3.select(".group").attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
             }
