@@ -25,7 +25,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
     constructor(props) {
         super();
         this.state = {
-            filters: [],
+            showAddProperty: false,
             knownAttributes: [],
             knownLinks: [],
             amountOfElements: 0,
@@ -34,6 +34,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
             color: props.color
         };
         this._firstUpdate = true;
+        this._filters = [];
     }
 
     //<editor-fold desc="React related">
@@ -116,34 +117,47 @@ class QueryBuilderReactElement extends GraphReactComponent {
             isLoading: false,
             knownAttributes: resultAttributes,
             knownLinks: resultLinks,
+            isLoading: false,
             groupingOptions: options,
             groupingIndex: 0 || index
         });
     };
 
+
+
     render() {
-        let renderOptions = () => {
-            return [{name:'name'}].concat(this.state.knownAttributes)
-                .map(it=><option>{it.name}</option>);
+        let renderOptions = [{name:'name'}].concat(this.state.knownAttributes).map(it=>it.name);
+
+        const removeFilter = (index, e) => {
+            e.stopPropagation();
+            let filters = this._filters;
+            console.log(`Remove filter ${index}, filters: ${JSON.stringify(filters)}`);
+            console.log(JSON.stringify(filters.filter((elem,i) => {return i !== index})));
+            this._filters = filters.filter((elem,i) => {return i !== index});
+            this.setState({filters: this._filters});
         };
 
         let addProperty = () =>{
-            let filters = this.state.filters;
-            if (filters.length > 0) {
+            if (this.state.showAddProperty) {
                 return (
                     <table>
                         <tbody>
-                        {filters.map((filter, i) => {
-                            return [
                             <tr>
                                 <td><select>{renderOptions()}</select></td>
-                            </tr>,
+                            </tr>
                             <tr>
                                 <td><input type="text" style={{width: '150px'}} /></td>
-                                <td><button onClick={it=>" "}>-</button></td>
+                                <td><button onClick={it=>this.setState({showAddProperty: false})}>-</button></td>
+                                <td>
+                                    <select onChange={(e)=>{this._filters[i].name = renderOptions[e.target.value]; this.setState({filters: this._filters})}}>
+                                        {renderOptions.map(it=>{return <option>{it.name}</option>})}
+                                    </select>
+                                </td>
+                            </tr>,
+                            <tr>
+                                <td><input onChange={(e)=>{this._filters[i].regex = e.target.value; this.setState({filters: this._filters})}} type="text" style={{width: '150px'}} value={this._filters[i].regex} /></td>
+                                <td><button onClick={e=>{removeFilter(i,e)}}>-</button></td>
                             </tr>
-                            ]
-                        }).reduce((prev, curr) => {return prev.concat(curr)}, [])}
                         </tbody>
                     </table>
                 );
@@ -154,7 +168,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
         };
 
-        const pickColor = async ()=>{
+        const pickColor = async (e)=>{
+            e.stopPropagation();
             const newColor = await ColorPicker.getColor(this.state.color);
             console.log(`Set new color ${newColor}`);
             this.props.updateColor(newColor);
@@ -182,10 +197,10 @@ class QueryBuilderReactElement extends GraphReactComponent {
         };
         const selectChange = (i) => {this.setState({groupingIndex: i})};
         const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
-        const addFilter = () => {
-            let filters = this.state.filters;
-            filters.push({name:'',regex:'',invert:false});
-            this.setState({filters: filters});
+        const addFilter = (e) => {
+            e.stopPropagation();
+            this._filters.push({name:'',regex:'',invert:false});
+            this.setState({filters: this._filters});
         };
         return (
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
@@ -206,7 +221,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={addFilter}>Add Filter</button>
+                    <button onClick={it=>this.setState({showAddProperty: true})}>Add Filter</button>
                     <br/>
                     <button onClick={pickColor}>Select Color</button>
                 </div>
@@ -217,12 +232,18 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
 export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) {
 
-    get color() {
-        return this._color
-    }
-
-    set color(color) {
-        this._color = color
+    /**
+     * Externally provided information
+     * @returns {{name: name, color: color, amount: amount, elements: elements}}
+     */
+    information() {
+        return {
+            name: async () => this._refObject.name,
+            color: async () => this._color,
+            amount: async () => (await this._getElements()).length,
+            elements: async () => (await this._getElements()),
+            relations: async (node) => this._state.entityRelationMap.get(node)
+        }
     }
 
     get grouping() {
@@ -279,6 +300,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             // Connected node
             let nodeMap = new Map();
             let promisesForIncomingElements = [];
+            this._state.entityRelationMap = new Map();
             this.debug("Asking incoming nodes for entities..")
             for (let node of incomingNodes) {
                 let fromNode = node[0];
@@ -298,7 +320,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
                     {typeIdSource: typeSource},
                     sourceElements,
                     {typeIdTarget: typeTarget}
-                )
+                );
+                this._state.entityRelationMap.set(key, res);
                 for (let val of res.values()) {
                     entities = entities.concat([...val]);
                 }
@@ -379,14 +402,15 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             <QueryBuilderReactElement
                 entityProvider={this._buildEntityProvider()}
                 color={this._color}
-                updateColor={(newColor) => {this.color = newColor}}
+                updateColor={(newColor) => {this._color = newColor}}
                 grouping={grouping}
             />
         );
 
         this._state = {
             promiseWaitingForEntities: null,
-            cachedEntities: null
+            cachedEntities: null,
+            entityRelationMap: null
         };
     }
 
