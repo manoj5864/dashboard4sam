@@ -25,7 +25,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
     constructor(props) {
         super();
         this.state = {
-            showAddProperty: false,
+            filters: [],
             knownAttributes: [],
             knownLinks: [],
             amountOfElements: 0,
@@ -117,47 +117,49 @@ class QueryBuilderReactElement extends GraphReactComponent {
             isLoading: false,
             knownAttributes: resultAttributes,
             knownLinks: resultLinks,
-            isLoading: false,
             groupingOptions: options,
             groupingIndex: 0 || index
         });
     };
 
-
-
     render() {
-        let renderOptions = [{name:'name'}].concat(this.state.knownAttributes).map(it=>it.name);
+        let renderOptions = (i) => {
+            return [{name:'name'}].concat(this.state.knownAttributes)
+                .map(it=><option selected={it.name === this._filters[i].name}>{it.name}</option>);
+        };
 
-        const removeFilter = (index, e) => {
-            e.stopPropagation();
-            let filters = this._filters;
-            console.log(`Remove filter ${index}, filters: ${JSON.stringify(filters)}`);
-            console.log(JSON.stringify(filters.filter((elem,i) => {return i !== index})));
-            this._filters = filters.filter((elem,i) => {return i !== index});
+        let removeFilter = (index) => {
+            this._filters = this._filters.filter((e,i) => {return i !== index});
             this.setState({filters: this._filters});
         };
 
+        let changeFilterRegex = (event, index) => {
+            this._filters[index].regex = event.target.value;
+            this.setState({filters: this._filters})
+        };
+
+        let changeFilterName = (event, index) => {
+            this._filters[index].name = event.target.value;
+            this.setState({filters : this._filters})
+        };
+
         let addProperty = () =>{
-            if (this.state.showAddProperty) {
+            let filters = this._filters;
+            if (filters.length > 0) {
                 return (
                     <table>
                         <tbody>
+                        {filters.map((filter, i) => {
+                            return [
                             <tr>
-                                <td><select>{renderOptions()}</select></td>
-                            </tr>
-                            <tr>
-                                <td><input type="text" style={{width: '150px'}} /></td>
-                                <td><button onClick={it=>this.setState({showAddProperty: false})}>-</button></td>
-                                <td>
-                                    <select onChange={(e)=>{this._filters[i].name = renderOptions[e.target.value]; this.setState({filters: this._filters})}}>
-                                        {renderOptions.map(it=>{return <option>{it.name}</option>})}
-                                    </select>
-                                </td>
+                                <td><select onChange={e => {changeFilterName(e,i)}}>{renderOptions(i)}</select></td>
                             </tr>,
                             <tr>
-                                <td><input onChange={(e)=>{this._filters[i].regex = e.target.value; this.setState({filters: this._filters})}} type="text" style={{width: '150px'}} value={this._filters[i].regex} /></td>
-                                <td><button onClick={e=>{removeFilter(i,e)}}>-</button></td>
+                                <td><input type="text" style={{width: '150px'}} onChange={e => {changeFilterRegex(e,i)}} value={this.state.filters[i].regex} /></td>
+                                <td><button onClick={removeFilter.bind(this, i)}>-</button></td>
                             </tr>
+                            ]
+                        }).reduce((prev, curr) => {return prev.concat(curr)}, [])}
                         </tbody>
                     </table>
                 );
@@ -199,7 +201,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
         const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
         const addFilter = (e) => {
             e.stopPropagation();
-            this._filters.push({name:'',regex:'',invert:false});
+            this._filters.push({name:'name',regex:'',invert:false});
             this.setState({filters: this._filters});
         };
         return (
@@ -221,7 +223,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={it=>this.setState({showAddProperty: true})}>Add Filter</button>
+                    <button onClick={addFilter}>Add Filter</button>
                     <br/>
                     <button onClick={pickColor}>Select Color</button>
                 </div>
@@ -250,6 +252,12 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         const state = this._reactDomElement.state;
         if (!state.groupingIndex) return "";
         return state.groupingOptions[state.groupingIndex-1]
+    }
+
+    get filters() {
+        const state = this._reactDomElement.state;
+        if (!state.filters) return [];
+        return state.filters
     }
 
     get entityType() {
@@ -381,7 +389,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             y: this._y,
             color: this._color,
             grouping : this.grouping,
-            filters: [],
+            filters: this.filters,
             data: this._refObject
         }
     }
