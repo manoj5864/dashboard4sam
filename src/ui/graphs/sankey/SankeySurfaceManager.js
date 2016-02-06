@@ -4,7 +4,6 @@ import {SankeyNode} from './SankeyNode'
 import {legend} from '../util/d3-legend.js'
 
 
-
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
 //  var Queue = function() {
@@ -30,7 +29,6 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
 //    return 0 < a.length ? a[b] : void 0
 //  }
 //}
-
 
 
   constructor(svg, {allowZooming = true, allowPanning = false, alignHorizontal = false, nodeList = []}) {
@@ -223,60 +221,60 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
           .style("left", (d3.event.pageX - 250) + "px")
           .style("top", (d3.event.pageY - 100) + "px");
 
-      var connectedNodeNamesSet = getConnectedNodes(d);
+      var pathsToHighlight = getImpactedPaths(d);
 
-      d3.selectAll("path")[0].forEach(function (x){
-        var directConnectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
-
-        if (connectedNodeNamesSet.has(directConnectedNodes[0]) || connectedNodeNamesSet.has(directConnectedNodes[1])) {
+      d3.selectAll("path")[0].forEach(function (x) {
+        if (pathsToHighlight.has(x.getElementsByTagName("title")[0].textContent)) {
           d3.select(x).style("stroke-opacity", .5)
         }
+        //var directConnectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
+        //
+        //if (connectedNodeNamesSet.has(directConnectedNodes[0]) || connectedNodeNamesSet.has(directConnectedNodes[1])) {
+        //  d3.select(x).style("stroke-opacity", .5)
+        //}
       });
     }
 
-    function getConnectedNodes(targetNode) {
+    function getImpactedPaths(targetNode) {
       var node = null
       var visitedNodes = new Set()
       var visitedNodesNamesSet = new Set()
+      var visitedNodesNamesPath = new Set()
       var nodesQueue = []
       nodesQueue.push(targetNode)
       visitedNodes.add(targetNode)
 
+      //Accessing all the sources
       while (nodesQueue.length !== 0) {
         node = nodesQueue.pop()
-        if (node.sourceLinks.length > 0) {
-          node.sourceLinks.forEach(function (link) {
-            if (!visitedNodes.has(link.source)) {
-              visitedNodes.add(link.source)
-              nodesQueue.push(link.source)
-              visitedNodesNamesSet.add(link.source._title)
-            }
-            if (!visitedNodes.has(link.target)) {
-              visitedNodes.add(link.target)
-              nodesQueue.push(link.target)
-              visitedNodesNamesSet.add(link.target._title)
-            }
-          })
-        }
-
-        if (node.targetLinks.length > 0) {
-          node.targetLinks.forEach(function (link) {
-            if (!visitedNodes.has(link.source)) {
-              visitedNodes.add(link.source)
-              nodesQueue.push(link.source)
-              visitedNodesNamesSet.add(link.source._title)
-            }
-            if (!visitedNodes.has(link.target)) {
-              visitedNodes.add(link.target)
-              nodesQueue.push(link.target)
-              visitedNodesNamesSet.add(link.target._title)
-            }
-          })
-        }
+        node.targetLinks.forEach(function (link) {
+          if (!visitedNodes.has(link.source)) {
+            visitedNodes.add(link.source)
+            nodesQueue.push(link.source)
+            visitedNodesNamesSet.add(link.source._title)
+            visitedNodesNamesPath.add(link.source._title + " -> " + node._title)
+          }
+        })
       }
 
-      //debugger;
-      return visitedNodesNamesSet;
+
+
+      //Accessing all the targets
+      nodesQueue.push(targetNode)
+      while (nodesQueue.length !== 0) {
+        node = nodesQueue.pop()
+        node.sourceLinks.forEach(function (link) {
+          if (!visitedNodes.has(link.target)) {
+            visitedNodes.add(link.target)
+            nodesQueue.push(link.target)
+            visitedNodesNamesSet.add(link.target._title)
+            visitedNodesNamesPath.add(node._title + " -> " + link.target._title)
+          }
+        })
+      }
+
+      console.log(visitedNodesNamesPath)
+      return visitedNodesNamesPath;
     }
 
     d3.selectAll(".tooltip").on("mousemove", function () {
