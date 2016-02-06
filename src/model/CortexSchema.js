@@ -233,17 +233,22 @@ let schemaFunc = (cortexWorkspace) => {
                             description: 'Type of the entity',
                             type: GraphQLString
                         },
+                        nameRegex: {
+                            description: 'Regex for name of entity',
+                            type: GraphQLString
+                        },
                         attributes: {
                             type: new GraphQLList(new GraphQLInputObjectType({
                               name: 'EntityAttributeArgument',
                               fields: {
-                                  name: { type: GraphQLString, defaultValue: null },
-                                  value: { type: GraphQLString }
+                                  name: { type: new GraphQLNonNull(GraphQLString) },
+                                  value: { type: GraphQLString, defaultValue: null },
+                                  regex: { type: GraphQLString, defaultValue: null }
                               }
                             }))
                         }
                     },
-                    resolve: async (root, {id, idList, typeId, type, attributes}) => {
+                    resolve: async (root, {id, idList, typeId, type, nameRegex, attributes}) => {
                         // No restrictions were requested
                         if (!(id || typeId || type || attributes || idList)) { return cortexWorkspace.getEntities() }
                         let entities = await cortexWorkspace.getEntities();
@@ -252,12 +257,23 @@ let schemaFunc = (cortexWorkspace) => {
                             if (type && !(entity.entityType.name == type)) {return false;}
                             if (id && !(entity.id == id)) { return false; }
                             if (idList && (!(idList.indexOf(entity.id) >= 0))) { return false; }
+                            if (nameRegex) { return entity.name.match(nameRegex); }
                             if (attributes) {
                                 for (let a of attributes) {
+                                    debugger;
                                     let isQualified = entity.attributes.some((attr) => {
-                                        let val = (a.name && (attr.name == a.name)) ||
-                                            ((attr.value instanceof Array) ? (attr.value.indexOf(a.value) >= 0) : attr.value == a.value);
-                                        return val;
+                                        if ((a.name && (attr.name == a.name))) {
+                                            let isQualified = true;
+                                            if (a.value) {
+                                                isQualified = ((attr.value instanceof Array) ?
+                                                    (attr.value.indexOf(a.value) >= 0) : attr.value == a.value);
+                                            }
+                                            if (a.regex && isQualified) {
+                                                isQualified = new RegExp(a.regex).test(attr.value);
+                                            }
+                                            return isQualified;
+                                        }
+                                        return false;
                                     });
                                     if (!isQualified)
                                         return false;

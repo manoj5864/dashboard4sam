@@ -7,18 +7,45 @@ function flatten(arr) {
     }, []);
 }
 
+function stringify(obj) {
+    let json = JSON.stringify(obj);
+    return json.replace(/\"([^(\")"]+)\":/g,"$1:");
+}
+
 export class QueryUtils {
 
     static async entities({
         type = null,
         typeId = null
-    }) {
+    }, {attributeFilter = {} } = {}) {
         let queryExpression = [];
         if (type) {
             queryExpression.push(`type: "${type}"`)
         }
         if (typeId) {
             queryExpression.push(`typeId: "${typeId}"`)
+        }
+
+        // Apply attribute filters
+        let attributeFilterKeys = Object.getOwnPropertyNames(attributeFilter);
+        if (attributeFilterKeys.length > 0) {
+            let attributeQueryObject = [];
+            for (let filterKey of attributeFilterKeys) {
+                let filterExpression = attributeFilter[filterKey];
+                if (filterKey == 'name') {
+                    queryExpression.push(`nameRegex: "${filterExpression}"`)
+                    continue;
+                }
+
+                // Test exression
+                new RegExp(filterExpression);
+
+                attributeQueryObject.push({
+                    name: filterKey,
+                    regex: filterExpression
+                })
+            }
+            queryExpression.push(`attributes: ${stringify(attributeQueryObject)}`);
         }
 
         let object = await app.socioCortexManager.executeQuery(`

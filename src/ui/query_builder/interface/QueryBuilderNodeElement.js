@@ -74,8 +74,9 @@ class QueryBuilderReactElement extends GraphReactComponent {
         this.props.updateColor(this.props.color);
     }
 
-    async _refresh() {
+    async _refresh(propagate = false) {
         this.setState({isLoading: true});
+        if (propagate) this.props.entityProvider.clear();
         let attributes = app.socioCortexManager.executeQuery(`
             query EntityAttributesAndLinks {
                 type(id: "${this.props.entityProvider.id()}") {
@@ -156,7 +157,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                                 <td><select onChange={e => {changeFilterName(e,i)}}>{renderOptions(i)}</select></td>
                             </tr>,
                             <tr>
-                                <td><input type="text" style={{width: '150px'}} onChange={e => {changeFilterRegex(e,i)}} value={this.state.filters[i].regex} /></td>
+                                <td><input type="text" style={{width: '150px'}} onBlur={this._refresh.bind(this, true)} onChange={e => {changeFilterRegex(e,i)}} value={this.state.filters[i].regex} /></td>
                                 <td><button onClick={removeFilter.bind(this, i)}>-</button></td>
                             </tr>
                             ]
@@ -245,7 +246,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             name: async () => this._refObject.name,
             color: async () => this._color,
             amount: async () => (await this._getElements()).length,
-            elements: async () => (await this._getElements()).map(it=>it.id),
+            elements: async () => (await this._getElements()),
             relations: async (node) => this._state.entityRelationMap.get(node)
         }
     }
@@ -257,6 +258,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     }
 
     get filters() {
+        if (!this._reactDomElement) return []; // Might not be available yet
         const state = this._reactDomElement.state;
         if (!state.filters) return [];
         return state.filters
@@ -289,59 +291,21 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     //</editor-fold>
 
     async _getElements() {
-        // Already retrieving the data
-        if (this._state.promiseWaitingForEntities) return this._state.promiseWaitingForEntities;
         if (this._state.cachedEntities) return this._state.cachedEntities;
+        if (this._state.deferredWaitingForEntities) return this._state.deferredWaitingForEntities.promise;
+        this._state.deferredWaitingForEntities = new Deferred();
 
-        let deferred = new Deferred();
-        this._state.promiseWaitingForEntities = deferred.promise;
+        let attributeFilterMap = {};
+        this.filters.forEach(it=>attributeFilterMap[it.name] = it.regex);
 
-        let incomingNodes = this._sm_getIncomingNodes();
-        if ((!incomingNodes) || (incomingNodes.size == 0)) {
-            // Beginning node
-            let entities = await QueryUtils.entities({
-                type: this.entityType.name
-            });
-            this._state.cachedEntities = entities.entity;
-            deferred.resolve(entities.entity);
-            this._state.promiseWaitingForEntities = null;
-            return entities.entity;
-        } else {
-            // Connected node
-            let nodeMap = new Map();
-            let promisesForIncomingElements = [];
-            this._state.entityRelationMap = new Map();
-            this.debug("Asking incoming nodes for entities..")
-            for (let node of incomingNodes) {
-                let fromNode = node[0];
-                let promise = fromNode._getElements();
-                promisesForIncomingElements.push(promise);
-                nodeMap.set(fromNode, promise);
-            }
-            let res = await Promise.all(promisesForIncomingElements)
-            this.debug("Entities retrieved")
-
-            let entities = [];
-            for (let key of nodeMap.keys()) {
-                let typeSource = key.entityType.id;
-                let typeTarget = this.entityType.id;
-                let sourceElements = await nodeMap.get(key);
-                let res = await QueryUtils.getElementsInRelationship(
-                    {typeIdSource: typeSource},
-                    sourceElements,
-                    {typeIdTarget: typeTarget}
-                );
-                this._state.entityRelationMap.set(key, res);
-                for (let val of res.values()) {
-                    entities = entities.concat([...val]);
-                }
-                entities = _.uniq(entities).map(it=>{return {id: it}});
-            }
-            this._state.cachedEntities = entities;
-            deferred.resolve(entities);
-            this._state.promiseWaitingForEntities = null;
-            return entities;
-        }
+        let entities = await QueryUtils.entities({
+            typeId: this.entityType.id
+        }, {attributeFilter: attributeFilterMap});
+        entities = entities.entity.map(it => it.id);
+        this._state.cachedEntities = entities;
+        this._state.deferredWaitingForEntities.resolve(entities.entity);
+        this._state.deferredWaitingForEntities = null;
+        return entities;
     }
 
     _update({nodeConnected = false} = {}, context) {
@@ -353,9 +317,13 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         }
     }
 
+    _clear() {
+        this._state.cachedEntities = null;
+    }
+
     _refresh() {
         // Clear cache
-        this._state.cachedEntities = null;
+        this._clear();
         // Trigger following elements
         let outgoingNodes = this._sm_getOutgoingNodes();
         if (outgoingNodes && outgoingNodes.length > 0) {
@@ -379,7 +347,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             id: () => this.entityType.id,
             amountOfEntities: async () => {
                 return (await this._getElements()).length
-            }
+            },
+            clear: () => this._clear()
         }
     }
 
@@ -418,7 +387,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         );
 
         this._state = {
-            promiseWaitingForEntities: null,
+            deferredWaitingForEntities: null,
             cachedEntities: null,
             entityRelationMap: null
         };
