@@ -3,7 +3,7 @@ import {TLoggable} from '../../util/logging/TLoggable'
 import {ContentPage} from '../main/Content'
 import {app} from  '../../Application'
 import 'babel-polyfill'
-import {GraphSurfaceManager} from './graph/GraphSurfaceManager'
+import {QueryBuilderSurfaceManager} from './interface/QueryBuilderSurfaceManager'
 import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
 import {QueryUtils} from '../../model/QueryUtils'
@@ -46,7 +46,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
     async componentDidMount() {
         this.debug('SVG element mounted, initializing D3 graph');
-        this._surfaceManager = new GraphSurfaceManager(this._svgElement);
+        this._surfaceManager = new QueryBuilderSurfaceManager(this._svgElement);
 
         // Request entities
         let entities = _.sortBy((await this._getEntities()).data.type, it=>it.name);
@@ -82,42 +82,14 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
 
     async _handleSankeyClick() {
         // Prepare data
-        let sankeyNodeMap = new Map();
-        let outgoingConnections = this._surfaceManager.state().outgoing();
-        for (let key of outgoingConnections.keys()) {
-            let keyNode = sankeyNodeMap.get(key);
-            let keyValue = (await key.information().amount());
-            if (!keyNode) {
-                keyNode = new SankeyNode({
-                    groupName: (await key.information().name()),
-                    title: (await key.information().name()),
-                    color: (await key.information().color())
-                });
-                sankeyNodeMap.set(key, keyNode);
-            }
 
-            for (let value of outgoingConnections.get(key)) {
-                value = value[1];
-                let valueNode = sankeyNodeMap.get(value);
-                if (!valueNode) {
-                    valueNode = new SankeyNode({
-                        groupName: (await value.information().name()),
-                        title: (await value.information().name()),
-                        color: (await value.information().color())
-                    });
-                    sankeyNodeMap.set(value, valueNode);
-                }
-                let valueValue = (await value.information().amount());
-
-                keyNode.addConnectedNode(valueNode, keyValue + valueValue);
-            }
-
-        }
-
+        let res = await this._surfaceManager.computeSankey();
+/*
         let sankeySvg = (<SankeyGraphPage nodes={[...sankeyNodeMap.values()]} />);
         this.setState({
             activeView: sankeySvg
         });
+        */
     }
 
     _logState() {
@@ -148,11 +120,16 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                     <li><a href="#">Tree Explorer</a></li>
                                 </ul>
                             </li>
-                            <li className="has-submenu">
-                                <a href="#">Debugging</a>
+                            <li className="has-submenu right">
+                                <a href="#">Queries</a>
                                 <ul className="submenu">
-                                    <li><a href="#" onClick={this._logState.bind(this)}>Log State</a></li>
-                                    <li><a href="#" onClick={this._importState.bind(this)}>Import State</a></li>
+                                    <li><a href="#" onClick={this._logState.bind(this)}>Save</a></li>
+                                    <li className="has-submenu right">
+                                        <a href="#" onClick={this._importState.bind(this)}>Load</a>
+                                        <ul className="submenu">
+                                            <li><a href="#" onClick={this._logState.bind(this)}>Fuck</a></li>
+                                        </ul>
+                                    </li>
                                 </ul>
                             </li>
                         </ul>

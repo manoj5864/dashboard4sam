@@ -1,6 +1,12 @@
 import {app} from  '../Application'
 import {default as _} from 'lodash'
 
+function flatten(arr) {
+    return arr.reduce(function (flat, toFlatten) {
+        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
+}
+
 export class QueryUtils {
 
     static async entities({
@@ -60,15 +66,86 @@ export class QueryUtils {
 
     }
 
+    static async entitiesGroupedBy(typeId, attributeName) {
+        let queryExpression = null;
+        switch (attributeName) {
+            case 'id':
+                queryExpression = `
+                    query EntityTypeQuery {
+                        entity(typeId: "${typeId}") {
+                            id
+                        }
+                    }
+                `;
+                break;
+            case 'name':
+                queryExpression = `
+                    query EntityTypeQuery {
+                        entity(typeId: "${typeId}") {
+                            id
+                            name
+                        }
+                    }
+                `;
+                break;
+            default:
+                queryExpression = `
+                    query EntityTypeQuery {
+                        entity(typeId: "${typeId}") {
+                            id
+                            attributes(names: ${JSON.stringify([attributeName])}) {
+                                value
+                            }
+                        }
+                    }
+                `;
+                break;
+        }
+
+        let objects = await app.socioCortexManager.executeQuery(queryExpression);
+
+        let groupToItemMap = new Map();
+        let idToGroups = objects.data.entity.map(it =>
+        {
+            let groups = null;
+            switch (attributeName) {
+                case 'id':
+                    groups = [it.id];
+                    break;
+                case 'name':
+                    groups = [it.name];
+                    break;
+                default:
+                    groups = flatten(it.attributes.map(it=>it.value));
+                    break;
+            }
+            return {
+                id: it.id,
+                groups: groups
+            }
+        });
+
+        for (let item of idToGroups) {
+            let itemId = item.id;
+            for (let group of item.groups) {
+                let groupSet = groupToItemMap.get(group) || new Set();
+                groupSet.add(itemId);
+                groupToItemMap.set(group, groupSet);
+            }
+        }
+        return groupToItemMap;
+    }
+
     static async getElementsInRelationship(
         /*Source Type*/{typeIdSource = null} = {},
         /*Source Elements*/sourceElements = [],
-        /*Target Type*/{typeIdTarget = null} = {}
+        /*Target Type*/{typeIdTarget = null} = {},
+        /*Target Elements*/targetElements = []
     ) {
         // Retrieve relationship
-        if (sourceElements.length == 0) throw new Error('No elements were provided')
-        if ( !typeIdSource || !typeIdTarget ) throw new Error('Type IDs must be present')
-        let relationships = await QueryUtils.doTwoEntityTypesRelate(typeIdSource, typeIdTarget)
+        if (sourceElements.length == 0) throw new Error('No elements were provided');
+        if ( !typeIdSource || !typeIdTarget ) throw new Error('Type IDs must be present');
+        let relationships = await QueryUtils.doTwoEntityTypesRelate(typeIdSource, typeIdTarget);
 
         if (!relationships) throw new Error('No relationships could be determined');
 

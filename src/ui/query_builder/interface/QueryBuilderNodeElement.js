@@ -216,10 +216,11 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
      */
     information() {
         return {
+            id: async () => this._refObject.id,
             name: async () => this._refObject.name,
             color: async () => this._color,
             amount: async () => (await this._getElements()).length,
-            elements: async () => (await this._getElements()),
+            elements: async () => (await this._getElements()).map(it=>it.id),
             relations: async (node) => this._state.entityRelationMap.get(node)
         }
     }
