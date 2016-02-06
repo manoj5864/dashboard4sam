@@ -25,7 +25,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
     constructor(props) {
         super();
         this.state = {
-            showAddProperty: false,
+            filters: [],
             knownAttributes: [],
             knownLinks: [],
             amountOfElements: 0,
@@ -34,6 +34,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
             color: props.color
         };
         this._firstUpdate = true;
+        this._filters = [];
     }
 
     //<editor-fold desc="React related">
@@ -122,26 +123,44 @@ class QueryBuilderReactElement extends GraphReactComponent {
         });
     };
 
-
-
     render() {
-        let renderOptions = () => {
+        let renderOptions = (i) => {
             return [{name:'name'}].concat(this.state.knownAttributes)
-                .map(it=><option>{it.name}</option>);
+                .map(it=><option selected={it.name === this._filters[i].name}>{it.name}</option>);
+        };
+
+        let removeFilter = (index) => {
+            this._filters = this._filters.filter((e,i) => {return i !== index});
+            this.setState({filters: this._filters});
+        };
+
+        let changeFilterRegex = (event, index) => {
+            this._filters[index].regex = event.target.value;
+            this.setState({filters: this._filters})
+        };
+
+        let changeFilterName = (event, index) => {
+            this._filters[index].name = event.target.value;
+            this.setState({filters : this._filters})
         };
 
         let addProperty = () =>{
-            if (this.state.showAddProperty) {
+            let filters = this._filters;
+            if (filters.length > 0) {
                 return (
                     <table>
                         <tbody>
+                        {filters.map((filter, i) => {
+                            return [
                             <tr>
-                                <td><select>{renderOptions()}</select></td>
-                            </tr>
+                                <td><select onChange={e => {changeFilterName(e,i)}}>{renderOptions(i)}</select></td>
+                            </tr>,
                             <tr>
-                                <td><input type="text" style={{width: '150px'}} /></td>
-                                <td><button onClick={it=>this.setState({showAddProperty: false})}>-</button></td>
+                                <td><input type="text" style={{width: '150px'}} onChange={e => {changeFilterRegex(e,i)}} value={this.state.filters[i].regex} /></td>
+                                <td><button onClick={removeFilter.bind(this, i)}>-</button></td>
                             </tr>
+                            ]
+                        }).reduce((prev, curr) => {return prev.concat(curr)}, [])}
                         </tbody>
                     </table>
                 );
@@ -152,7 +171,8 @@ class QueryBuilderReactElement extends GraphReactComponent {
 
         };
 
-        const pickColor = async ()=>{
+        const pickColor = async (e)=>{
+            e.stopPropagation();
             const newColor = await ColorPicker.getColor(this.state.color);
             console.log(`Set new color ${newColor}`);
             this.props.updateColor(newColor);
@@ -180,6 +200,11 @@ class QueryBuilderReactElement extends GraphReactComponent {
         };
         const selectChange = (i) => {this.setState({groupingIndex: i})};
         const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
+        const addFilter = (e) => {
+            e.stopPropagation();
+            this._filters.push({name:'name',regex:'',invert:false});
+            this.setState({filters: this._filters});
+        };
         return (
             <div className="panel panel-border panel-custom" style={this._buildStyle()}>
                 {renderLoader()}
@@ -199,7 +224,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={it=>this.setState({showAddProperty: true})}>Add Filter</button>
+                    <button onClick={addFilter}>Add Filter</button>
                     <br/>
                     <button onClick={pickColor}>Select Color</button>
                 </div>
@@ -229,6 +254,12 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         const state = this._reactDomElement.state;
         if (!state.groupingIndex) return "";
         return state.groupingOptions[state.groupingIndex-1]
+    }
+
+    get filters() {
+        const state = this._reactDomElement.state;
+        if (!state.filters) return [];
+        return state.filters
     }
 
     get entityType() {
@@ -360,7 +391,7 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
             y: this._y,
             color: this._color,
             grouping : this.grouping,
-            filters: [],
+            filters: this.filters,
             data: this._refObject
         }
     }
