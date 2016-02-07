@@ -179,6 +179,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             nodesMouseOver(d)
         }).on("mouseout", () => {
             nodesMouseOut()
+        }).on('dblclick', (d) => {
+            d._handleDoubleClick(d);
         });
 
         function nodesMouseOut() {

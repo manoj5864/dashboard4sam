@@ -1,8 +1,29 @@
 import {GraphSurfaceManager} from '../graph/GraphSurfaceManager'
 import {QueryUtils} from '../../../model/QueryUtils'
 import {SankeyNode} from '../../graphs/sankey/SankeyNode'
+import {Modal} from '../../../ui/main/widgets/Modal'
+import {TabWrapper, TabbedContent} from '../../../ui/main/widgets/Tabs'
+import {EntityTypeDetails} from '../../../ui/query_builder/dialog/EntityTypeDetails'
+import {CompletenessStatsView} from '../../../ui/graphs/CompletenessStats'
 
 class CustomSankeyNode extends SankeyNode {
+
+    async _handleDoubleClick() {
+        const name = await this.queryBuilderNode.information().name();
+        const id = await this.queryBuilderNode.information().id();
+        const title = ['Details for EntityType ', <strong>{name}</strong>];
+        const instances = this.elements;
+        const entitiesTab = (
+            <EntityTypeDetails id={id} instances={instances} name={name} />
+        );
+
+        const wrappedTabs = [
+            new TabWrapper('Entities', null, entitiesTab, '60%'),
+            new TabWrapper('Completeness', null, <CompletenessStatsView id={id} name={name} />, '60%')
+        ];
+
+        Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
+    }
 
     get elements() {
         return [].concat(this._state.elements); // Copy of internal array
