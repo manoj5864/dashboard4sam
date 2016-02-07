@@ -20,7 +20,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         super();
         this.state = {
             entityList: [],
-            activeView: null
+            sankeyNodes: null
         };
         this._queryBuilderElement = (
             <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
@@ -88,18 +88,11 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         let activeAninmation = null;
         if (this._viewHost) activeAninmation = LoadingAnimation.start(this._viewHost);
         let res = await this._surfaceManager.computeSankey();
-        let sankeySvg = (<SankeyGraphPage nodes={res} ref={c=>{this._sankeyGraphPage = c}}/>);
 
         if (activeAninmation) activeAninmation.stop();
         this.setState({
-            activeView: sankeySvg
+            sankeyNodes: res
         })
-    }
-
-    _handleSankeyImageSaveClick() {
-        if(this._sankeyGraphPage) {
-            this._sankeyGraphPage.surfaceManager.saveAs('export');
-        }
     }
 
     _logState() {
@@ -123,19 +116,6 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     }
 
     render() {
-        const renderSankeyMenu = () => {
-            if ((this.state.activeView) && (this.state.activeView.type == SankeyGraphPage)) {
-                return (
-                    <li className="has-submenu">
-                        <a href="#">Sankey</a>
-                        <ul className="submenu">
-                            <li><a href="#" onClick={this._handleSankeyImageSaveClick.bind(this)}>Save as Image</a></li>
-                        </ul>
-                    </li>
-                )
-            }
-        };
-
         let createLink = () => {
             const query = btoa(this._surfaceManager.serialize().toJSON());
             const link = `${window.location.origin}${window.location.pathname}#/query/${query}`;
@@ -175,7 +155,6 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                     <li><a href="#">Tree Explorer</a></li>
                                 </ul>
                             </li>
-                            {renderSankeyMenu()}
                             <li className="has-submenu right">
                                 <a href="#">Queries</a>
                                 <ul className="submenu">
@@ -216,7 +195,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                 </div>
                 <div>
                     <div ref={c => this._viewHost = c}></div>
-                    {this.state.activeView || this._queryBuilderElement}
+                    {this.state.sankeyNodes ? <SankeyGraphPage nodes={this.state.sankeyNodes} ref={c=>{this._sankeyGraphPage = c}} /> : this._queryBuilderElement}
                 </div>
             </div>
         )

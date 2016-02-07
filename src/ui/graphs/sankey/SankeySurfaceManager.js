@@ -341,8 +341,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         this._svg.call(zoom).on("dblclick.zoom", null);
     }
 
-    saveAs(filename, {type = 'png'} = {}) {
-        svgElementToImage(this._svgElement, filename, type);
+    saveAs(filename, {type = 'svg'} = {}) {
+        svgElementToImage(this._svgElement, filename, {type: type});
     }
 
 }
