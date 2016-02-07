@@ -113,6 +113,7 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
                         // Compute connection value
                         let connectedElements = await mappedSourceNode.elementsRelatedTo(target);
                         let connectionStrength = connectedElements.length;
+                        if (connectionStrength > 0)
                         mappedSourceNode.addConnectedNode(target, connectionStrength);
                     }
                 }

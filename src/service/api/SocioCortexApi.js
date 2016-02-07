@@ -127,7 +127,7 @@ export class SocioCortexEntity {
     }
 
     get attributes() {
-        return this._json.attributes.map(x => new SocioCortexEntityAttribute(this,x))
+        return this._json.attributes.map(x => new SocioCortexEntityAttribute(this,x, this._cortexClient))
     }
 
     _buildUrl(appendix) {
@@ -141,9 +141,10 @@ export class SocioCortexEntity {
 
 class SocioCortexEntityAttribute {
 
-    constructor(parentEntity, json) {
-        this._parent = parentEntity
-        this._json = json
+    constructor(parentEntity, json, client) {
+        this._parent = parentEntity;
+        this._json = json;
+        this._cortexClient = client;
     }
 
     get id() {
@@ -159,13 +160,14 @@ class SocioCortexEntityAttribute {
     }
 
     get attributeDefinition() {
-        return new SocioCortexAttributeDefinition(this._json.attributeDefinition)
+        return new SocioCortexAttributeDefinition(this._json.attributeDefinition, this._cortexClient)
     }
 }
 
 class SocioCortexAttributeDefinition {
-    constructor(json) {
-        this._json = json
+    constructor(json, client) {
+        this._json = json;
+        this._cortexClient = client;
     }
 
     get id() {
@@ -185,7 +187,7 @@ class SocioCortexAttributeDefinition {
     }
 
     async get() {
-        return new SocioCortexAttributeDefinitionDetails(await RequestHelper.get(this.href))
+        return new SocioCortexAttributeDefinitionDetails(await this._cortexClient._makeRequest(this.href))
     }
 }
 
@@ -212,8 +214,9 @@ class SocioCortexAttributeDefinitionDetails {
 
 class SocioCortexEntityTypeDetails {
 
-    constructor(json) {
-        this._json = json
+    constructor(json, cortexClient) {
+        this._json = json;
+        this._cortexClient = cortexClient;
     }
 
     get processes() {
@@ -221,7 +224,7 @@ class SocioCortexEntityTypeDetails {
     }
 
     get attributeDefinitions() {
-        return this._json.attributeDefinitions.map((entry) => new SocioCortexAttributeDefinition(entry))
+        return this._json.attributeDefinitions.map((entry) => new SocioCortexAttributeDefinition(entry, this._cortexClient))
     }
 
     get versions() {
@@ -240,8 +243,8 @@ class SocioCortexEntityTypeDetails {
 
 class SocioCortexEntitytype {
     constructor(cortexClient, json) {
-        this._cortexClient = cortexClient
-        this._json = json
+        this._cortexClient = cortexClient;
+        this._json = json;
     }
 
     get id() {
@@ -262,8 +265,8 @@ class SocioCortexEntitytype {
 
     async get() {
         try {
-            let json = await this._cortexClient._makeRequest(this.href)
-            return new SocioCortexEntityTypeDetails(json)
+            let json = await this._cortexClient._makeRequest(this.href);
+            return new SocioCortexEntityTypeDetails(json, this._cortexClient);
         } catch (ex) {
         }
     }
