@@ -77,7 +77,7 @@ export function legend(g) {
         .on('click', function (d) {
           var selectedCircle = this
           var unselectedCircles = d3.selectAll("circle")[0].filter(function (x) {
-            return x.style.fill !== this.style.fill
+            return x.getAttribute("class") !== this.getAttribute("class")
           }, this)
           this.style.opacity = 1
           var doubleClick = false
@@ -107,8 +107,9 @@ export function legend(g) {
                   .style("opacity", ".5")
             })
           }
+
           function getRectsWithSameClass(elem, x) {
-            return x._instanceName !== elem
+            return x._groupName !== elem
           }
         })
 
