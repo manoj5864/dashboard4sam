@@ -88,9 +88,9 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 }
             `);
         const entities = tempEntities.data.entity;
-        const cols = _.union(details.attributes, details.links);
+        const cols = _.union(['name'], details.attributes, details.links);
         let contents = entities.map(entity => {
-            let attrs = {};
+            let attrs = {name:  entity.name};
             details.attributes.forEach((attr) => {
                 const temp = entity.attributes.find(a => {return a.name === attr});
                 const value = temp && temp.value[0] || null;
