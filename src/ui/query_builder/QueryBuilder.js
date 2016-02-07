@@ -109,12 +109,18 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         }
     }
 
+    _deleteQuery(name) {
+        this._storageManager.removeQueryByName(name);
+        this.forceUpdate();
+    }
+
     render() {
         let saveQuery = () => {
             const name = prompt('Name of the query?');
             if (name) {
                 const json = this._surfaceManager.serialize().toJSON();
                 this._storageManager.addQueryByName(name, '', btoa(json));
+                this.forceUpdate();
             }
         };
         return (
@@ -146,6 +152,20 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                                 return (
                                                     <li>
                                                         <a href="#" onClick={this._loadQuery.bind(this, entry[0])}>
+                                                            {entry[0]}
+                                                        </a>
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                    </li>
+                                    <li className="has-submenu right">
+                                        <a href="#">Delete</a>
+                                        <ul className="submenu">
+                                            {this._storageManager.getQueries().map(entry => {
+                                                return (
+                                                    <li>
+                                                        <a href="#" onClick={this._deleteQuery.bind(this, entry[0])}>
                                                             {entry[0]}
                                                         </a>
                                                     </li>
