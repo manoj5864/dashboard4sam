@@ -265,7 +265,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     _renderLegend() {
         // Legend
         this._svg.select(".legend")
-            .attr("transform", `translate(${this._svgHeight - 100},${this._svgWidth / 2})`)
+            //.attr("transform", `translate(${this._svgHeight - 100},${this._svgWidth / 2})`)
+            .attr("transform", "translate(" + 50 + "," + 50 + ")")
             .style("font-size", "12px")
             .call(legend);
     }
@@ -309,7 +310,6 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         this._nodeGroup = d3.select(svg).select(".group").append("g")
         if (!this._options.alignHorizontal) {
             d3.select(svg).select(".group").attr("transform",
-                //"translate(" + width / 2 + "," + margin.top + ")rotate(90)")
                 "translate(" + width + "," + margin.top + ")scale(.6)rotate(90)")
         } else {
             d3.select(svg).select(".group").attr("transform",
@@ -317,7 +317,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         }
 
         if (this._options.allowZooming) {
-            this._initZoom();
+            this._initZoom(width, margin.top);
         }
 
         if (this._options.allowPanning) {
@@ -327,8 +327,9 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         this._update(svg)
     }
 
-    _initZoom() {
+    _initZoom(width, marginTop) {
         let zoom = d3.behavior.zoom()
+        .translate([width , marginTop]).scale(.6)
             .on("zoom", () => {
                 if (d3.event.sourceEvent.shiftKey) {
                     // TODO  the internal d3 state is still changing
