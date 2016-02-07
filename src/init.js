@@ -1,5 +1,8 @@
 import {app} from './Application'
 import {QueryBuilder} from './ui/query_builder/QueryBuilder'
-app.start()
+app.start();
 
-app.pageManager.switchPage(<QueryBuilder />)
+var qbRef = null;
+let qbElement = <QueryBuilder ref={component => {qbRef = component}} />;
+app.pageManager.switchPage(qbElement);
+app.pageManager.queryBuilder = qbRef;

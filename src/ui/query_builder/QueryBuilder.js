@@ -96,9 +96,8 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         console.log(this._surfaceManager.serialize().toJSON());
     }
 
-    async _importState() {
-        const configString = prompt("Enter JSON config");
-        await this._surfaceManager.fromJSON(configString, QueryBuilderNodeElement);
+    async importState(jsonConfig) {
+        await this._surfaceManager.fromJSON(jsonConfig, QueryBuilderNodeElement);
     }
 
     render() {
@@ -125,7 +124,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                 <ul className="submenu">
                                     <li><a href="#" onClick={this._logState.bind(this)}>Save</a></li>
                                     <li className="has-submenu right">
-                                        <a href="#" onClick={this._importState.bind(this)}>Load</a>
+                                        <a href="#" onClick={() => {const str = prompt("Enter JSON config"); str && this.importState(str)}}>Load</a>
                                         <ul className="submenu">
                                             <li><a href="#" onClick={this._logState.bind(this)}>Fuck</a></li>
                                         </ul>
