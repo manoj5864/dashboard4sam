@@ -274,16 +274,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     _init(svg) {
         // Configure the layout
         let margin = {top: 1, right: 1, bottom: 6, left: 1};
-        let width = d3.select(svg).attr('width');
-        let height = d3.select(svg).attr('height');
-
-        // Percentage sized
-        if (width.endsWith('%')) {
-            width = $(this._svgElement).outerWidth();
-        }
-        if (height.endsWith('%')) {
-            height = $(this._svgElement).outerHeight();
-        }
+        let width = this._svgWidth;
+        let height = this._svgHeight;
 
         width = width - margin.left - margin.right;
         height = height - margin.top - margin.bottom;
@@ -303,7 +295,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
         this._sankey = d3.sankey()
             .nodeWidth(36)
             .nodePadding(40)
-            .size([width, height]);
+            .size(this._options.alignHorizontal ? [width, height] : [height, width]);
         this._path = this._sankey.link();
 
         // Intialize node group
