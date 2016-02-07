@@ -4,6 +4,14 @@ export class Query {
         return this._name;
     }
 
+    get description() {
+        return this._description;
+    }
+
+    get query() {
+        return this._query;
+    }
+
     toJSON() {
         return {
             name: this._name,
