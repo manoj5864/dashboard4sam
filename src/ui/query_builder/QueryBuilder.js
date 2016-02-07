@@ -8,6 +8,7 @@ import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
 import {QueryUtils} from '../../model/QueryUtils'
 import {SankeyGraphPage, SankeyNode} from '../graphs/sankey/SankeyGraphPage'
+import {LoadingAnimation} from '../main/util/LoadingAnimation'
 
 //http://bl.ocks.org/cjrd/6863459
 
@@ -81,10 +82,12 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     }
 
     async _handleSankeyClick() {
-        // Prepare data
-
+        let activeAninmation = null;
+        if (this._viewHost) activeAninmation = LoadingAnimation.start(this._viewHost);
         let res = await this._surfaceManager.computeSankey();
         let sankeySvg = (<SankeyGraphPage nodes={res} ref={c=>{this._sankeyGraphPage = c}}/>);
+
+        if (activeAninmation) activeAninmation.stop();
         this.setState({
             activeView: sankeySvg
         })
@@ -152,7 +155,10 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                         </ul>
                     </div>
                 </div>
-                {this.state.activeView || this._queryBuilderElement}
+                <div>
+                    <div ref={c => this._viewHost = c}></div>
+                    {this.state.activeView || this._queryBuilderElement}
+                </div>
             </div>
         )
     }
