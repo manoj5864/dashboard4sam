@@ -192,18 +192,46 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
           .style("left", (d3.event.pageX - 250) + "px")
           .style("top", (d3.event.pageY - 100) + "px");
 
-      d3.selectAll("path")[0].forEach(function (x) {
-        var connectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
+      var pathsToHighlight = getImpactedPaths(d);
 
-        connectedNodes.forEach(function (nodeEntry) {
-          if (nodeEntry === d._title) {
-            d3.select(x)
-                .style("stroke-opacity", .5)
+      d3.selectAll("path")[0].forEach(function (x) {
+        if (pathsToHighlight.has(x.getElementsByTagName("title")[0].textContent)) {
+          d3.select(x).style("stroke-opacity", .5)
+        }
+        //var directConnectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
+        //
+        //if (connectedNodeNamesSet.has(directConnectedNodes[0]) || connectedNodeNamesSet.has(directConnectedNodes[1])) {
+        //  d3.select(x).style("stroke-opacity", .5)
+        //}
+      });
+    }
+
+    function getImpactedPaths(targetNode) {
+      var node = null
+      var visitedNodes = new Set()
+      var visitedNodesNamesSet = new Set()
+      var visitedNodesNamesPath = new Set()
+      var nodesQueue = []
+      nodesQueue.push(targetNode)
+      visitedNodes.add(targetNode)
+
+      //Accessing all the sources
+      while (nodesQueue.length !== 0) {
+        node = nodesQueue.pop()
+        node.targetLinks.forEach(function (link) {
+          if (!visitedNodes.has(link.source)) {
+            visitedNodes.add(link.source)
+            nodesQueue.push(link.source)
+            visitedNodesNamesSet.add(link.source._title)
+            visitedNodesNamesPath.add(link.source._title + " -> " + node._title)
           }
         })
+      }
 
       });
 
+      console.log(visitedNodesNamesPath)
+      return visitedNodesNamesPath;
     }
 
     d3.selectAll(".tooltip").on("mousemove", function () {
@@ -260,7 +288,8 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     this._nodeGroup = d3.select(svg).select(".group").append("g")
     if (!this._options.alignHorizontal) {
       d3.select(svg).select(".group").attr("transform",
-          "translate(" + width / 2 + "," + margin.top + ")rotate(90)")
+          //"translate(" + width / 2 + "," + margin.top + ")rotate(90)")
+          "translate(" + width + "," + margin.top + ")scale(.6)rotate(90)")
     } else {
       d3.select(svg).select(".group").attr("transform",
           "translate(" + margin.left + "," + margin.top + ")")
