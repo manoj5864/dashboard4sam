@@ -76,7 +76,7 @@ export class Modal extends mixin(React.Component, TLoggable) {
                         <div className="modal-header">
                             <h4 className="modal-title">{this.state.header}</h4>
                         </div>
-                        <div className="modal-body">
+                        <div className="modal-body" style={{wordWrap: 'break-word'}}>
                             {this.state.content}
                         </div>
                         <div className="modal-footer">

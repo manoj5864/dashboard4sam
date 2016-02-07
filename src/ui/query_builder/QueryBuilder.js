@@ -10,6 +10,7 @@ import {QueryUtils} from '../../model/QueryUtils'
 import {SankeyGraphPage, SankeyNode} from '../graphs/sankey/SankeyGraphPage'
 import {LoadingAnimation} from '../main/util/LoadingAnimation'
 import {QueryStorageManager} from '../../service/storage/QueryStorageManager'
+import {Modal} from '../main/widgets/Modal'
 
 //http://bl.ocks.org/cjrd/6863459
 
@@ -112,7 +113,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     async _loadQuery(name) {
         const query = this._storageManager.getQueryByName(name);
         if (query) {
-            this.importState(atob(query.query));
+            window.location.hash = `#/query/${query.query}`;
         }
     }
 
@@ -135,11 +136,24 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
             }
         };
 
+        let createLink = () => {
+            const query = btoa(this._surfaceManager.serialize().toJSON());
+            const link = `${window.location.origin}${window.location.pathname}#/query/${query}`;
+            Modal.show(
+                'Share Query',
+                [
+                    <h1>The Link for your current query</h1>,
+                    <a href={link}>{link}</a>
+                ]
+            )
+        };
+
         let saveQuery = () => {
             const name = prompt('Name of the query?');
             if (name) {
                 const json = this._surfaceManager.serialize().toJSON();
-                this._storageManager.addQueryByName(name, '', btoa(json));
+                const base = btoa(json);
+                this._storageManager.addQueryByName(name, '', base);
                 this.forceUpdate();
             }
         };
@@ -165,14 +179,15 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                             <li className="has-submenu right">
                                 <a href="#">Queries</a>
                                 <ul className="submenu">
-                                    <li><a href="#" onClick={saveQuery}>Save</a></li>
+                                    <li><a onClick={createLink}>Share Query</a></li>
+                                    <li><a onClick={saveQuery}>Save</a></li>
                                     <li className="has-submenu right">
-                                        <a href="#" onClick={() => {const str = prompt("Enter JSON config"); str && this.importState(str)}}>Load</a>
+                                        <a onClick={() => {const str = prompt("Enter JSON config"); str && this.importState(str)}}>Load</a>
                                         <ul className="submenu">
                                             {this._storageManager.getQueries().map(entry => {
                                                 return (
                                                     <li>
-                                                        <a href="#" onClick={this._loadQuery.bind(this, entry[0])}>
+                                                        <a onClick={this._loadQuery.bind(this, entry[0])}>
                                                             {entry[0]}
                                                         </a>
                                                     </li>
@@ -181,12 +196,12 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                         </ul>
                                     </li>
                                     <li className="has-submenu right">
-                                        <a href="#">Delete</a>
+                                        <a>Delete</a>
                                         <ul className="submenu">
                                             {this._storageManager.getQueries().map(entry => {
                                                 return (
                                                     <li>
-                                                        <a href="#" onClick={this._deleteQuery.bind(this, entry[0])}>
+                                                        <a onClick={this._deleteQuery.bind(this, entry[0])}>
                                                             {entry[0]}
                                                         </a>
                                                     </li>
