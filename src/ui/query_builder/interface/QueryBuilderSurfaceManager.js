@@ -20,8 +20,14 @@ class CustomSankeyNode extends SankeyNode {
         let targetTypeId = await customSankeyNode.queryBuilderNode.information().id();
         let targetElements = customSankeyNode.elements;
 
-        let res = await QueryUtils.getElementsInRelationship(sourceTypeId, sourceElements, targetTypeId, targetElements);
-        debugger;
+        let relationMap = await QueryUtils.getElementsInRelationship({typeIdSource: sourceTypeId}, sourceElements, {typeIdTarget: targetTypeId}, targetElements);
+        let res = [];
+        relationMap.forEach((value, key) => {
+            for (let relatedEntity of value) {
+                res.push([key, relatedEntity]);
+            }
+        });
+        return res;
     }
 
     get queryBuilderNode() {
@@ -83,10 +89,14 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
 
         // Iterate through the path and build Sankey Nodes
         let sankeyNodeMap = new Map();
-        this._state.graphManager.outgoing.forEach(async (value, key, map) => {
-            // Source Node Processing
-            let sourceNodeMapped = await this._processSingleNode(key);
-            sankeyNodeMap.set(key, sourceNodeMapped);
+        for (let key of this._state.graphManager.outgoing.keys()) {
+            let sourceNodeMapped = sankeyNodeMap.get(key);
+            if(!sourceNodeMapped) {
+                sourceNodeMapped = await this._processSingleNode(key);
+                sankeyNodeMap.set(key, sourceNodeMapped);
+            }
+            let value = this._state.graphManager.outgoing.get(key);
+
 
             // Process targets
             value = [...value].map(it=>it[1]); // Construct Array with targets mapped
@@ -101,13 +111,19 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
                     let targets = sankeyNodeMap.get(targetNode);
                     for (let target of targets) {
                         // Compute connection value
-                        mappedSourceNode.elementsRelatedTo(target);
-                        //mappedSourceNode.addConnectedNode(target, );
+                        let connectedElements = await mappedSourceNode.elementsRelatedTo(target);
+                        let connectionStrength = connectedElements.length;
+                        mappedSourceNode.addConnectedNode(target, connectionStrength);
                     }
                 }
             }
-        })
+        }
 
+        let nodesOutput = [];
+        for (let val of sankeyNodeMap.values()) {
+            nodesOutput = nodesOutput.concat([...val]);
+        }
+        return nodesOutput;
     }
 
 }

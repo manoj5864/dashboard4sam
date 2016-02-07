@@ -84,12 +84,10 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         // Prepare data
 
         let res = await this._surfaceManager.computeSankey();
-/*
-        let sankeySvg = (<SankeyGraphPage nodes={[...sankeyNodeMap.values()]} />);
+        let sankeySvg = (<SankeyGraphPage nodes={res} />);
         this.setState({
             activeView: sankeySvg
-        });
-        */
+        })
     }
 
     _logState() {

@@ -73,7 +73,6 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
     let width = this._svg.attr('width');
     let connectionList = [];
 
-    debugger;
     this._state.nodeList.forEach((it) => {
       it.connectedNodes.map((connectedNode) => {
         return {

@@ -178,34 +178,42 @@ export class QueryUtils {
 
         // Normal relationships
         let sourceRelations = relationships.find(it=>it.id==typeIdSource).relations.map(it=>it.name);
-        let sourceElementIds = sourceElements.map(it=>it.id);
+        let sourceElementIds = sourceElements;
         let outputMap = new Map();
         if (sourceRelations.length > 0) {
             let query = `
-            query SourceRelationQuery {
-                entity(idList: ${JSON.stringify(sourceElementIds)}) {
-                    id
-                    links(names: ${JSON.stringify(sourceRelations)}) {
-                        value {
-                            id
+                query SourceRelationQuery {
+                    entity(idList: ${JSON.stringify(sourceElementIds)}) {
+                        id
+                        links(names: ${JSON.stringify(sourceRelations)}) {
+                            value {
+                                id
+                            }
                         }
                     }
                 }
-            }
-        `
+            `;
             let queryResult = await app.socioCortexManager.executeQuery(query);
             // Collect entries
             queryResult.data.entity.forEach(entity => {
-                outputMap.set(entity.id, new Set(entity.links.map(link=>link.value.map(value=>value.id)).reduce([].concat)))
+                let foundElements = entity.links.map(link=>link.value.map(value=>value.id)).reduce([].concat);
+                // If we have target elements to compare to, check if found ids are in the list
+                if (targetElements.length > 0) foundElements = foundElements.filter(it => targetElements.indexOf(it) >= 0);
+                outputMap.set(entity.id, new Set(foundElements));
             })
         }
 
         // Reverse relationships
         let targetRelations = relationships.find(it=>it.id==typeIdTarget).relations.map(it=>it.name);
-        if (targetRelations.length > 0) {
+        if (targetRelations.length > 0) { // Do we have any reverse relationships?
+            let entityQueryExpression = (targetElements.length > 0) ?
+                // If we have a given idList, search only for relevent entities
+                `idList: ${JSON.stringify(targetElements)}` :
+                // Otherwise get all entities of that type
+                `typeId: "${typeIdTarget}"`;
             let query = `
             query TargetRelationQuery {
-                entity(typeId: "${typeIdTarget}") {
+                entity(${entityQueryExpression}) {
                     id
                     links(names: ${JSON.stringify(targetRelations)}) {
                         value {
@@ -214,7 +222,7 @@ export class QueryUtils {
                     }
                 }
             }
-            `
+            `;
             let queryResult = await app.socioCortexManager.executeQuery(query);
             queryResult.data.entity.forEach(entity => {
                 let currentEntity = entity.id;

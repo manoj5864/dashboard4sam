@@ -286,10 +286,10 @@ class SocioCortexUser {
 export class SocioCortexApi {
 
     constructor(username, password, relative_url = "") {
-        this._username = username
-        this._password = password
-        this._relative_url = relative_url
-        this._requestCache = {};
+        this._username = username;
+        this._password = password;
+        this._relative_url = relative_url;
+        this._requestCache = new Map();
         this._activeRequests = {};
     }
 
@@ -306,8 +306,8 @@ export class SocioCortexApi {
             return (await this._activeRequests[url]);
         }
 
-        if (this._requestCache[url]) {
-            return this._requestCache[url];
+        if (this._requestCache.has(url)) {
+            return this._requestCache.get(url);
         } else {
             this._activeRequests[url] = RequestHelper.get(
                 url,
@@ -315,10 +315,10 @@ export class SocioCortexApi {
                     username: this._username,
                     password: this._password
                 }
-            )
+            );
             let result = await this._activeRequests[url];
             this._activeRequests[url] = null;
-            this._requestCache[url] = result;
+            this._requestCache.set(url, result);
             return result;
         }
 

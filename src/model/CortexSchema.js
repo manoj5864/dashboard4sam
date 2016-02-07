@@ -260,7 +260,6 @@ let schemaFunc = (cortexWorkspace) => {
                             if (nameRegex) { return entity.name.match(nameRegex); }
                             if (attributes) {
                                 for (let a of attributes) {
-                                    debugger;
                                     let isQualified = entity.attributes.some((attr) => {
                                         if ((a.name && (attr.name == a.name))) {
                                             let isQualified = true;
