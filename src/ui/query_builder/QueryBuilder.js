@@ -8,6 +8,7 @@ import {QueryBuilderNodeElement} from './interface/QueryBuilderNodeElement'
 import {default as _} from 'lodash'
 import {QueryUtils} from '../../model/QueryUtils'
 import {SankeyGraphPage, SankeyNode} from '../graphs/sankey/SankeyGraphPage'
+import {QueryStorageManager} from '../../service/storage/QueryStorageManager'
 
 //http://bl.ocks.org/cjrd/6863459
 
@@ -22,7 +23,8 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         this._queryBuilderElement = (
             <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
             </svg>
-        )
+        );
+        this._storageManager = new QueryStorageManager();
     }
 
     get name() {
@@ -104,6 +106,18 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         await this._surfaceManager.fromJSON(jsonConfig, QueryBuilderNodeElement);
     }
 
+    async _loadQuery(name) {
+        const query = this._storageManager.getQueryByName(name);
+        if (query) {
+            this.importState(atob(query.query));
+        }
+    }
+
+    _deleteQuery(name) {
+        this._storageManager.removeQueryByName(name);
+        this.forceUpdate();
+    }
+
     render() {
         const renderSankeyMenu = () => {
             if ((this.state.activeView) && (this.state.activeView.type == SankeyGraphPage)) {
@@ -118,6 +132,14 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
             }
         };
 
+        let saveQuery = () => {
+            const name = prompt('Name of the query?');
+            if (name) {
+                const json = this._surfaceManager.serialize().toJSON();
+                this._storageManager.addQueryByName(name, '', btoa(json));
+                this.forceUpdate();
+            }
+        };
         return (
             <div>
                 <div className="navbar-custom">
@@ -140,11 +162,33 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                             <li className="has-submenu right">
                                 <a href="#">Queries</a>
                                 <ul className="submenu">
-                                    <li><a href="#" onClick={this._logState.bind(this)}>Save</a></li>
+                                    <li><a href="#" onClick={saveQuery}>Save</a></li>
                                     <li className="has-submenu right">
                                         <a href="#" onClick={() => {const str = prompt("Enter JSON config"); str && this.importState(str)}}>Load</a>
                                         <ul className="submenu">
-                                            <li><a href="#" onClick={this._logState.bind(this)}>Fuck</a></li>
+                                            {this._storageManager.getQueries().map(entry => {
+                                                return (
+                                                    <li>
+                                                        <a href="#" onClick={this._loadQuery.bind(this, entry[0])}>
+                                                            {entry[0]}
+                                                        </a>
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                    </li>
+                                    <li className="has-submenu right">
+                                        <a href="#">Delete</a>
+                                        <ul className="submenu">
+                                            {this._storageManager.getQueries().map(entry => {
+                                                return (
+                                                    <li>
+                                                        <a href="#" onClick={this._deleteQuery.bind(this, entry[0])}>
+                                                            {entry[0]}
+                                                        </a>
+                                                    </li>
+                                                )
+                                            })}
                                         </ul>
                                     </li>
                                 </ul>
