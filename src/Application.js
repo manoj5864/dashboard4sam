@@ -7,6 +7,7 @@ import {graphql} from 'graphql'
 import {schema} from './model/CortexSchema'
 import {default as store} from 'store'
 import {LoginWindow} from './ui/main/windows/LoginWindow'
+import {QueryBuilderNodeElement} from './ui/query_builder/interface/QueryBuilderNodeElement'
 
 // Pages
 import {SankeyGraphPage} from './ui/graphs/sankey/SankeyGraphPage'
@@ -30,8 +31,8 @@ class PageState {
     }
 
     toJSON() {
-        let json = {}
-        json[StateDescriptors.PAGE_VISIBLE] = this[StateDescriptors.PAGE_VISIBLE]
+        let json = {};
+        json[StateDescriptors.PAGE_VISIBLE] = this[StateDescriptors.PAGE_VISIBLE];
 
         return JSON.stringify(json)
     }
@@ -39,12 +40,21 @@ class PageState {
 }
 
 class PageManager extends mixin(null, TLoggable) {
+
     get currentHash() {
         return window.location.hash
     }
 
     set currentHash(value) {
         window.location.hash = value
+    }
+
+    get queryBuilder() {
+        return this._queryBuilder;
+    }
+
+    set queryBuilder(queryBuilder) {
+        this._queryBuilder = queryBuilder;
     }
 
     switchPage(page) {
@@ -54,26 +64,52 @@ class PageManager extends mixin(null, TLoggable) {
     }
 
     _handleHashChange(hash) {
-        this.info(`Dealing with hash change ${hash}`)
+        this.info(`Dealing with hash change ${hash}`);
+        let hashParts = hash.split('/');
+        hashParts.shift(); //throw out '#'
+        if (hashParts.length < 2) {
+            this.error('Invalid hash format');
+            return;
+        }
+
+        const mainRoute = hashParts.shift();
+        switch (mainRoute) {
+            case 'query':
+                this.debug(`Interpreting query...`);
+                this._loadQuery(hashParts[0]);
+                break;
+            default:
+                this.error(`Invalid target ${mainRoute}`);
+                break;
+        }
+    }
+
+    _loadQuery(base64Query) {
+        const state = atob(base64Query);
+        if (this._queryBuilder) {
+            this._queryBuilder.importState(state);
+        }
     }
 
     _updateHash() {
-        this.currentHash = window.btoa(this._pageState.toJSON())
+        //this.currentHash = window.btoa(this._pageState.toJSON())
     }
 
     init() {
         // Check current hash
-        let hash = this.currentHash
+        let hash = this.currentHash;
         //window.atob(hash)
 
         this._pageState = new PageState();
 
-        this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0])
+        this._queryBuilder = null;
+        this._pageElement = ReactDOM.render(<Page />, $('#wrapper')[0]);
 
         $(document).ready(() => {
             $(window).bind('hashchange', () => {
                 this._handleHashChange(this.currentHash)
-            })
+            });
+            this._handleHashChange(this.currentHash)
         })
     }
 

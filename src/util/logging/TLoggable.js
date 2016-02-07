@@ -47,8 +47,9 @@ export class StaticLog {
 export let TLoggable = {
     debug(msg) {StaticLog.log('DEBUG', this.__proto__.constructor.name, msg)},
     info(msg)  {StaticLog.log('INFO', this.__proto__.constructor.name, msg)},
-    warn(msg)  {StaticLog.log('WARN', this.__proto__.constructor.name, msg)}
-}
+    warn(msg)  {StaticLog.log('WARN', this.__proto__.constructor.name, msg)},
+    error(msg)  {StaticLog.log('ERROR', this.__proto__.constructor.name, msg)}
+};
 
 export class StaticLogger {
     static debug(msg, name='Static Logger') {StaticLog.log('DEBUG', name, msg)}
