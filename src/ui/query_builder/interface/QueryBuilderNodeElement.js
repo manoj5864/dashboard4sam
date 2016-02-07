@@ -273,17 +273,18 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
         this._reactDomElement._setSelected(val)
     }
 
-    _handleDoubleClick() {
+    async _handleDoubleClick() {
         const name = this._refObject.name;
         const id = this._refObject.id;
         const title = ['Details for EntityType ', <strong>{name}</strong>];
+        const instances = await this._getElements();
         const entitiesTab = (
-            <EntityTypeDetails id={id} name={name} />
+            <EntityTypeDetails id={id} instances={instances} name={name} />
         );
 
         const wrappedTabs = [
             new TabWrapper('Entities', null, entitiesTab, '60%'),
-            new TabWrapper('Statistics', null, <CompletenessStatsView id={id} name={name} />, '60%')
+            new TabWrapper('Completeness', null, <CompletenessStatsView id={id} name={name} />, '60%')
         ];
 
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)

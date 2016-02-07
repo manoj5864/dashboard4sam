@@ -11,14 +11,16 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
     static get propTypes() {
         return {
             id: React.PropTypes.string.isRequired,
-            name: React.PropTypes.string
+            name: React.PropTypes.string,
+            instances: React.PropTypes.arrayOf(React.PropTypes.string)
         }
     }
 
     static get defaultProps() {
         return {
             id: null,
-            name: ''
+            name: '',
+            instances: []
         }
     }
 
@@ -29,7 +31,8 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
             rows: [
                 new RowWrapper({Column1: 'Loading', Column2: 'Data...'})
             ],
-            id: props.id
+            id: props.id,
+            instances: props.instances
         };
         this._handleRefresh()
     }
@@ -69,7 +72,7 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
         const details = await EntityTypeDetails.getTypeDetails(this.state.id);
         const tempEntities = await app.socioCortexManager.executeQuery(`
                 query getEntitiesDetailed {
-                    entity(typeId: "${details.id}") {
+                    entity(idList: ${JSON.stringify(this.state.instances)}) {
                         name
                         attributes(names: ${JSON.stringify(details.attributes)}) {
                             id
@@ -88,9 +91,9 @@ export class EntityTypeDetails extends mixin(React.Component, TLoggable) {
                 }
             `);
         const entities = tempEntities.data.entity;
-        const cols = _.union(details.attributes, details.links);
+        const cols = _.union(['name'], details.attributes, details.links);
         let contents = entities.map(entity => {
-            let attrs = {};
+            let attrs = {name:  entity.name};
             details.attributes.forEach((attr) => {
                 const temp = entity.attributes.find(a => {return a.name === attr});
                 const value = temp && temp.value[0] || null;
