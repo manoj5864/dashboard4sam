@@ -107,9 +107,9 @@ class QueryBuilderReactElement extends GraphReactComponent {
         const resultLinks = tempLinks.data.type[0].attributes;
 
         let index = null;
-        const options = resultAttributes.concat(resultLinks).map(it=>it.name);
+        const options = resultAttributes.map(it=>it.name);
         if (this._firstUpdate && this.props.grouping) {
-            index = options.indexOf(this.props.grouping) + 1;
+            index = options.indexOf(this.props.grouping) + 2;
             this._firstUpdate = false;
         }
         this.setState({
@@ -118,7 +118,6 @@ class QueryBuilderReactElement extends GraphReactComponent {
             isLoading: false,
             knownAttributes: resultAttributes,
             knownLinks: resultLinks,
-            isLoading: false,
             groupingOptions: options,
             groupingIndex: 0 || index
         });
@@ -200,7 +199,7 @@ class QueryBuilderReactElement extends GraphReactComponent {
             );
         };
         const selectChange = (i) => {this.setState({groupingIndex: i})};
-        const renderGrouping = ['(No Grouping)'].concat(this.state.groupingOptions);
+        const renderGrouping = ['(No Grouping)', 'name'].concat(this.state.groupingOptions);
         const addFilter = (e) => {
             e.stopPropagation();
             this._filters.push({name:'name',regex:'',invert:false});
@@ -254,7 +253,8 @@ export class QueryBuilderNodeElement extends mixin(ReactNodeElement, TLoggable) 
     get grouping() {
         const state = this._reactDomElement.state;
         if (!state.groupingIndex) return "";
-        return state.groupingOptions[state.groupingIndex-1]
+        if (state.groupingIndex == 1) return 'name';
+        return state.groupingOptions[state.groupingIndex-2]
     }
 
     get filters() {
