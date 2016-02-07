@@ -1,23 +1,40 @@
 import {Query} from './model/Query'
 import {default as store} from 'store'
 
-class QueryStorageBrowserPersistence extends QueryStorageManagerPersistence {
-    save() {
+class QueryStorageManagerPersistence {
+    constructor() {
+    }
 
+    save(queries) {
+        throw new Error("Abstract method!")
+    }
+
+    load() {
+        throw new Error("Abstract method!")
+    }
+}
+
+class QueryStorageBrowserPersistence extends QueryStorageManagerPersistence {
+    constructor() {
+        super();
+    }
+
+    save(queries) {
+        store.set('queries', queries);
+    }
+
+    load() {
+        return store.get('queries') || [];
     }
 }
 
 class SocioCortexPersistence extends QueryStorageManagerPersistence {
-    save() {
-
-    }
-}
-
-class QueryStorageManagerPersistence {
-    save() {
+    constructor() {
+        super();
     }
 
-    load() {
+    save() {
+
     }
 }
 
@@ -33,21 +50,33 @@ export class QueryStorageManager {
 
     addQueryByName(name, description, query) {
         let queryObject = new Query(name, description, query);
-        this._queryStorage.set(name, query);
+        this.addQuery(queryObject);
+    }
+
+    removeQueryByName(name) {
+        this._queryStorage.delete(name);
         this._persist();
     }
 
+    getQueryByName(name) {
+        return this._queryStorage.get(name);
+    }
+
+    getQueries() {
+        return [...this._queryStorage.entries()];
+    }
+
     _persist() {
-        // Initialize persistence module
-        if (!this._persistenceModule) this._persistenceModule = new this._config.persistenceModule();
-        this._config.persistenceModule
+        this._persistenceModule.save([...this._queryStorage.entries()]);
     }
 
     constructor({persistenceModule = QueryStorageBrowserPersistence} = {}) {
-        this._queryStorage = new Map();
         this._config = {
             persistenceModule: persistenceModule
-        }
+        };
+        this._persistenceModule = new this._config.persistenceModule();
+        let entries = this._persistenceModule.load();
+        this._queryStorage = new Map(entries);
     }
 
 }
