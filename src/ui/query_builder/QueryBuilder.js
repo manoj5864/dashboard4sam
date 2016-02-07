@@ -18,7 +18,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         this.state = {
             entityList: [],
             activeView: null
-        }
+        };
         this._queryBuilderElement = (
             <svg width="100%" height="100%" xmlns="http://www.w3.org/svg/2000" ref={(c) => this._svgElement = c}>
             </svg>
@@ -84,10 +84,16 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
         // Prepare data
 
         let res = await this._surfaceManager.computeSankey();
-        let sankeySvg = (<SankeyGraphPage nodes={res} />);
+        let sankeySvg = (<SankeyGraphPage nodes={res} ref={c=>{this._sankeyGraphPage = c}}/>);
         this.setState({
             activeView: sankeySvg
         })
+    }
+
+    _handleSankeyImageSaveClick() {
+        if(this._sankeyGraphPage) {
+            this._sankeyGraphPage.surfaceManager.saveAs('export');
+        }
     }
 
     _logState() {
@@ -100,6 +106,19 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
     }
 
     render() {
+        const renderSankeyMenu = () => {
+            if ((this.state.activeView) && (this.state.activeView.type == SankeyGraphPage)) {
+                return (
+                    <li className="has-submenu">
+                        <a href="#">Sankey</a>
+                        <ul className="submenu">
+                            <li><a href="#" onClick={this._handleSankeyImageSaveClick.bind(this)}>Save as Image</a></li>
+                        </ul>
+                    </li>
+                )
+            }
+        };
+
         return (
             <div>
                 <div className="navbar-custom">
@@ -118,6 +137,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                                     <li><a href="#">Tree Explorer</a></li>
                                 </ul>
                             </li>
+                            {renderSankeyMenu()}
                             <li className="has-submenu right">
                                 <a href="#">Queries</a>
                                 <ul className="submenu">

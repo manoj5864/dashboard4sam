@@ -20,6 +20,10 @@ export class SankeyGraphPage extends mixin(React.Component, TLoggable) {
     }
   }
 
+  get surfaceManager() {
+    return this._sankeySurfaceManager;
+  }
+
   componentDidMount() {
     this._sankeySurfaceManager = new SankeySurfaceManager(
         this._svgElement, {
