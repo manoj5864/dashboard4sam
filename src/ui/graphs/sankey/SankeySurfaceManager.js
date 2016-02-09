@@ -154,12 +154,15 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                 return "translate(" + d.dx / 2 + "," + d.dy / 2 + ")rotate(-90)"
             })
             .attr("dy", ".35em")
+            //.attr("dx", this._state.nodeList.length > 10 ? "0em" : "2em")
+            .attr("dx", "-2em")
             .attr("text-anchor", "end")
             .text(function (d) {
                 return d.name;
             })
             .attr("text-anchor", "start")
             .style("fill", "white")
+            //.style("font-size", this._state.nodeList.length > 10 ? "7em" : "2em")
             .attr("data-legend", function (d) {
                 return d.groupName
             })
@@ -202,7 +205,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             var pathsToHighlight = getImpactedPaths(d);
 
             d3.selectAll("path")[0].forEach(function (x) {
-                if (pathsToHighlight.has(x.getElementsByTagName("title")[0].textContent)) {
+                if (x.getElementsByTagName("title").length > 0 && pathsToHighlight.has(x.getElementsByTagName("title")[0].textContent)) {
                     d3.select(x).style("stroke-opacity", .5)
                 }
                 //var directConnectedNodes = x.getElementsByTagName("title")[0].textContent.split(" -> ")
@@ -249,7 +252,7 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                 })
             }
 
-            console.log(visitedNodesNamesPath);
+            //console.log(visitedNodesNamesPath);
             return visitedNodesNamesPath;
         }
 
@@ -294,11 +297,23 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             .classed('group', true);
 
         // Apply Sankey
-        this._sankey = d3.sankey()
-            .nodeWidth(36)
-            .nodePadding(40)
-            .size(this._options.alignHorizontal ? [width, height] : [height, width]);
-        this._path = this._sankey.link();
+
+
+        // Temporary workaround to take care of the immense amount data
+        if (this._state.nodeList.length > 10 ) {
+            this._sankey = d3.sankey()
+                .nodeWidth(300)
+                .nodePadding(40)
+                .size(this._options.alignHorizontal ? [width, height] : [height*10, width*10]);
+            this._path = this._sankey.link();
+        } else {
+
+            this._sankey = d3.sankey()
+                .nodeWidth(36)
+                .nodePadding(40)
+                .size(this._options.alignHorizontal ? [width, height] : [height, width]);
+            this._path = this._sankey.link();
+        }
 
         // Intialize node group
         this._nodeGroup = d3.select(svg).select(".group").append("g")
