@@ -85,6 +85,11 @@ class CustomSankeyNode extends SankeyNode {
 }
 
 class NotRelatedCustomSankeyNode extends CustomSankeyNode {
+
+    async _handleDoubleClick() {
+
+    }
+
     addElements(elements) {
         this._state.elements = this._state.elements.concat(elements);
     }
@@ -107,7 +112,7 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
         let name = await node.information().name();
 
         let noneNode = noneMap.get(node) || new NotRelatedCustomSankeyNode(
-                name, `${name}: Not related`, null, color, node
+                name, `No ${name}`, null, color, node
         );
         noneMap.set(node, noneNode);
 
@@ -122,13 +127,13 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
                 sankeyNode.elements = [...value];
                 res.push(sankeyNode)
             });
-            res.push(noneNode);
+            //res.push(noneNode);
             return res;
         } else {
             let elements = await node.information().elements();
             let resultNode = new CustomSankeyNode(name, name, null, color, node);
             resultNode.elements = elements;
-            return [resultNode, noneNode];
+            return [resultNode];
         }
     }
 
@@ -160,10 +165,15 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
             // Build relationships
             let connectedTargets = new Set();
             let notConnectedTargets = new Set();
+
             let noneSourceNode = noneSankeyNodeMap.get(key);
             for (let mappedSourceNode of sourceNodeMapped) {
                 for (let targetNode of value) {
                     let targets = sankeyNodeMap.get(targetNode);
+                    let noneNodeTarget = noneSankeyNodeMap.get(targetNode);
+
+                    let connectedSources = new Set();
+                    let notConnectedSources = new Set();
 
                     for (let target of targets) {
                         // Compute connection value
@@ -173,10 +183,15 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
 
                         connectedElements.forEach(it => {
                             notConnectedTargets.delete(it[1]);
+                            notConnectedSources.delete(it[0]);
+                            connectedSources.add(it[0]);
                             connectedTargets.add(it[1]);
                         });
                         connectionInformation.notConnectedTarget.forEach(it=> {
                            if (!connectedTargets.has(it)) notConnectedTargets.add(it);
+                        });
+                        connectionInformation.notConnectedSource.forEach(it=> {
+                           if (!connectedSources.has(it)) notConnectedSources.add(it);
                         });
 
                         let connectionStrength = connectedElements.length;
@@ -185,6 +200,12 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
                         }
                     }
 
+                    noneNodeTarget.elements = [...notConnectedSources];
+                    for (let innerMappedSourceNode of sourceNodeMapped) {
+                        let hasElements = innerMappedSourceNode.has(noneNodeTarget.elements);
+                        if (hasElements.length > 0)
+                            innerMappedSourceNode.addConnectedNode(noneNodeTarget, hasElements.length);
+                    }
                 }
             }
 
@@ -208,9 +229,7 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
 
         // Add Sankey Node elements for non-connected entities
         for (let val of noneSankeyNodeMap.values()) {
-            if (val.connectedNodes.length > 0) {
-                nodesOutput.push(val);
-            }
+            nodesOutput.push(val);
         }
         return nodesOutput;
     }
