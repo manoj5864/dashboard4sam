@@ -205,7 +205,7 @@ class SocioCortexAttributeDefinitionDetails {
     get options() {
         let object = {}
         Object.assign(object, this._json.options)
-        object.entityType = new SocioCortexEntity(null, object.entityType)
+        if (object.entityType) object.entityType = new SocioCortexEntity(null, object.entityType)
         return object
     }
     get entityType() { return new SocioCortexEntity(null, this._json.entityType) }

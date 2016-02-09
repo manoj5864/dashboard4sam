@@ -41,6 +41,11 @@ class CustomSankeyNode extends SankeyNode {
         let targetTypeId = await customSankeyNode.queryBuilderNode.information().id();
         let targetElements = customSankeyNode.elements;
 
+        // Nothing to compare? -> Return empty array
+        if ((sourceElements.length == 0) || (targetElements.length == 0)) {
+            return [];
+        }
+
         let relationMap = await QueryUtils.getElementsInRelationship({typeIdSource: sourceTypeId}, sourceElements, {typeIdTarget: targetTypeId}, targetElements);
         let res = [];
         relationMap.forEach((value, key) => {
@@ -70,16 +75,32 @@ class CustomSankeyNode extends SankeyNode {
     }
 }
 
+class NotRelatedCustomSankeyNode extends CustomSankeyNode {
+    addElements(elements) {
+        this._state.elements = this._state.elements.concat(elements);
+    }
+
+    constructor(...args) {
+        super(...args);
+        this._state.elements = []; // Empty array as there will be no initial entities provided
+    }
+}
+
 export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
 
     _checkComputableGraph() {
         return this._state.nodeList.every(it => this._state.graphManager.vertices.has(it));
     }
 
-    async _processSingleNode(node) {
+    async _processSingleNode(node, noneMap) {
         let id = await node.information().id();
         let color = await node.information().color();
         let name = await node.information().name();
+
+        let noneNode = noneMap.get(node) || new NotRelatedCustomSankeyNode(
+                name, `${name}: Not related`, null, color, node
+        );
+        noneMap.set(node, noneNode);
 
         // Check for grouping
         let entityGrouping = node.grouping;
@@ -92,28 +113,29 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
                 sankeyNode.elements = [...value];
                 res.push(sankeyNode)
             });
+            res.push(noneNode);
             return res;
         } else {
             let elements = await node.information().elements();
             let resultNode = new CustomSankeyNode(name, name, null, color, node);
             resultNode.elements = elements;
-            return [resultNode];
+            return [resultNode, noneNode];
         }
     }
 
 
     async computeSankey() {
-
         if (!this._checkComputableGraph()) {
             throw new Error('Graph computation disallowed')
         }
 
         // Iterate through the path and build Sankey Nodes
         let sankeyNodeMap = new Map();
+        let noneSankeyNodeMap = new Map();
         for (let key of this._state.graphManager.outgoing.keys()) {
             let sourceNodeMapped = sankeyNodeMap.get(key);
             if(!sourceNodeMapped) {
-                sourceNodeMapped = await this._processSingleNode(key);
+                sourceNodeMapped = await this._processSingleNode(key, noneSankeyNodeMap);
                 sankeyNodeMap.set(key, sourceNodeMapped);
             }
             let value = this._state.graphManager.outgoing.get(key);
@@ -123,7 +145,7 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
             value = [...value].map(it=>it[1]); // Construct Array with targets mapped
             for (let val of value) {
                 if (sankeyNodeMap.has(val)) continue;
-                sankeyNodeMap.set(val, (await this._processSingleNode(val)));
+                sankeyNodeMap.set(val, (await this._processSingleNode(val, noneSankeyNodeMap)));
             }
 
             // Build relationships
@@ -144,6 +166,13 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
         let nodesOutput = [];
         for (let val of sankeyNodeMap.values()) {
             nodesOutput = nodesOutput.concat([...val]);
+        }
+
+        // Add Sankey Node elements for non-connected entities
+        for (let val of noneSankeyNodeMap.values()) {
+            if (val.connectedNodes.length > 0) {
+                nodesOutput.push(val);
+            }
         }
         return nodesOutput;
     }

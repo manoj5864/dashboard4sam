@@ -72,7 +72,7 @@ export class QueryUtils {
                         id
                         name
                         entity {
-                            id,
+                            id
                             name
                         }
                     }
@@ -237,6 +237,13 @@ export class QueryUtils {
             })
         }
         return outputMap;
+        /*
+        return {
+            combinations: outputMap,
+            missingForward: null,
+            missingReverse: null
+        };
+        */
     }
 
 }
