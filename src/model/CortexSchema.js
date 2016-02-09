@@ -127,7 +127,10 @@ let schemaFunc = (cortexWorkspace) => {
                         let details = await attr.details;
                         output.push(details)
                     }
-                    if (onlyLinks) output = output.filter(entry => entry.attributeType == 'Link');
+                    if (onlyLinks) output = output.filter(entry => {
+                        return ((entry.attributeType == 'Link') && (entry.options.entityType != null));
+                        }
+                    );
                     if (!includeLinks) output =  output.filter((entry) => {
                         return (entry.attributeType != 'Link')
                     });
