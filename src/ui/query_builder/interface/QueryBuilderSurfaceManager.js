@@ -25,6 +25,11 @@ class CustomSankeyNode extends SankeyNode {
         Modal.show(title, <TabbedContent active={0}>{wrappedTabs}</TabbedContent>)
     }
 
+    has(elements) {
+        if (!(elements instanceof Array)) elements = [elements];
+        return this.elements.filter(it => elements.indexOf(it) >= 0);
+    }
+
     get elements() {
         return [].concat(this._state.elements); // Copy of internal array
     }
@@ -43,7 +48,7 @@ class CustomSankeyNode extends SankeyNode {
 
         // Nothing to compare? -> Return empty array
         if ((sourceElements.length == 0) || (targetElements.length == 0)) {
-            return [];
+            return null;
         }
 
         let relationMap = await QueryUtils.getElementsInRelationship({typeIdSource: sourceTypeId}, sourceElements, {typeIdTarget: targetTypeId}, targetElements);
@@ -53,7 +58,11 @@ class CustomSankeyNode extends SankeyNode {
                 res.push([key, relatedEntity]);
             }
         });
-        return res;
+        return {
+            connections: res,
+            notConnectedSource: relationMap.notInRelationshipSource,
+            notConnectedTarget: relationMap.notInRelationshipTarget
+        };
     }
 
     get queryBuilderNode() {
@@ -149,19 +158,48 @@ export class QueryBuilderSurfaceManager extends GraphSurfaceManager {
             }
 
             // Build relationships
+            let connectedTargets = new Set();
+            let notConnectedTargets = new Set();
+            let noneSourceNode = noneSankeyNodeMap.get(key);
             for (let mappedSourceNode of sourceNodeMapped) {
                 for (let targetNode of value) {
                     let targets = sankeyNodeMap.get(targetNode);
+
                     for (let target of targets) {
                         // Compute connection value
-                        let connectedElements = await mappedSourceNode.elementsRelatedTo(target);
+                        let connectionInformation = await mappedSourceNode.elementsRelatedTo(target);
+                        if (!connectionInformation) continue; // Empty connection
+                        let connectedElements = connectionInformation.connections;
+
+                        connectedElements.forEach(it => {
+                            notConnectedTargets.delete(it[1]);
+                            connectedTargets.add(it[1]);
+                        });
+                        connectionInformation.notConnectedTarget.forEach(it=> {
+                           if (!connectedTargets.has(it)) notConnectedTargets.add(it);
+                        });
+
                         let connectionStrength = connectedElements.length;
-                        if (connectionStrength > 0)
-                        mappedSourceNode.addConnectedNode(target, connectionStrength);
+                        if (connectionStrength > 0) {
+                            mappedSourceNode.addConnectedNode(target, connectionStrength);
+                        }
                     }
+
+                }
+            }
+
+            // Connect the empty node
+            noneSourceNode.elements = [...notConnectedTargets];
+            for (let targetNode of value) {
+                let targets = sankeyNodeMap.get(targetNode);
+                for (let target of targets) {
+                    let hasElements = target.has(noneSourceNode.elements);
+                    if (hasElements.length > 0)
+                    noneSourceNode.addConnectedNode(target, hasElements.length);
                 }
             }
         }
+
 
         let nodesOutput = [];
         for (let val of sankeyNodeMap.values()) {

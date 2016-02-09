@@ -236,14 +236,15 @@ export class QueryUtils {
                 })
             })
         }
-        debugger;
+
+        let foundTargets = flatten([...outputMap.values()].map(it=>[...it]));
         return {
             combinations: outputMap,
             notInRelationshipSource: sourceElements.filter(it => {
                 let elems = outputMap.get(it);
-                return elems || (elems.size > 0)
+                return !elems || (elems.size == 0)
             }),
-            notInRelationshipTarget: targetElements.filter(it => [...outputMap.values()].map(it=>[...it]).reduce([].concat).indexOf(it) > 0)
+            notInRelationshipTarget: targetElements.filter(it=>foundTargets.indexOf(it) < 0)
         };
 
     }
