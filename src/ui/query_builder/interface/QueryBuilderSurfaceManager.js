@@ -48,7 +48,7 @@ class CustomSankeyNode extends SankeyNode {
 
         let relationMap = await QueryUtils.getElementsInRelationship({typeIdSource: sourceTypeId}, sourceElements, {typeIdTarget: targetTypeId}, targetElements);
         let res = [];
-        relationMap.forEach((value, key) => {
+        relationMap.combinations.forEach((value, key) => {
             for (let relatedEntity of value) {
                 res.push([key, relatedEntity]);
             }

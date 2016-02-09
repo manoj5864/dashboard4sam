@@ -236,14 +236,16 @@ export class QueryUtils {
                 })
             })
         }
-        return outputMap;
-        /*
+        debugger;
         return {
             combinations: outputMap,
-            missingForward: null,
-            missingReverse: null
+            notInRelationshipSource: sourceElements.filter(it => {
+                let elems = outputMap.get(it);
+                return elems || (elems.size > 0)
+            }),
+            notInRelationshipTarget: targetElements.filter(it => [...outputMap.values()].map(it=>[...it]).reduce([].concat).indexOf(it) > 0)
         };
-        */
+
     }
 
 }
