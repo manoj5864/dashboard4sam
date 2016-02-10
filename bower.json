@@ -19,6 +19,7 @@
     "bootstrap": "~3.3.5",
     "react": "~0.14.3",
     "plotly": "https://github.com/plotly/plotly.js/blob/v1.2.1/dist/plotly.js?raw=true",
-    "x-editable": "~1.5.1"
+    "x-editable": "~1.5.1",
+    "font-awesome-bower": "~4.5.0"
   }
 }

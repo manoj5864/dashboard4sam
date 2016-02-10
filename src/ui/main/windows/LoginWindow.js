@@ -1,4 +1,4 @@
-import {Form, FormControl} from '../form/Form'
+import {Form, FormControl} from '../widgets/forms/Form'
 import {Button} from '../widgets/Button'
 import {Modal} from '../widgets/Modal'
 import {mixin} from '../../../util/mixin'

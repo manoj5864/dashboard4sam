@@ -1,5 +1,3 @@
-let React = window.React
-
 export class FormControl extends React.Component {
 
     constructor() {
