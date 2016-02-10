@@ -223,9 +223,9 @@ class QueryBuilderReactElement extends GraphReactComponent {
                         {renderPropertyRows()}
                     </table>
                     {addProperty()}
-                    <button onClick={addFilter}>Add Filter</button>
+                    <button className="btn" onClick={addFilter}>Add Filter</button>
                     <br/>
-                    <button onClick={pickColor}>Select Color</button>
+                    <button className="btn" onClick={pickColor}>Select Color</button>
                 </div>
             </div>
         )
