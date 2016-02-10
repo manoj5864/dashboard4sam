@@ -320,8 +320,8 @@
         vertical-align: top;
     }
     .navigation-menu > li .submenu > li.has-submenu > a:after {
-        content: "\e649";
-        font-family: "themify";
+        content: "\f0da";
+        font-family: FontAwesome;
         position: absolute;
         right: 20px;
         font-size: 9px;
@@ -419,8 +419,8 @@
         color: #5fbeaa;
     }
     .navigation-menu > li .submenu li.has-submenu > a:after {
-        content: "\e64b";
-        font-family: "themify";
+        content: "\f0da";
+        font-family: FontAwesome;
         position: absolute;
         right: 30px;
     }
