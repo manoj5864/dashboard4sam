@@ -143,22 +143,21 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                     <div className="container">
                         <ul className="navigation-menu">
                             <li className="has-submenu">
-                                <a href="#">Add</a>
+                                <a href="#"><i className="fa fa-plus"></i>Add</a>
                                 <ul className="submenu">
                                     {this._renderEntityList()}
                                 </ul>
                             </li>
                             <li className="has-submenu">
-                                <a href="#">Analytics</a>
+                                <a href="#"><i className="fa fa-line-chart"></i>Analytics</a>
                                 <ul className="submenu">
                                     <li><a href="#" onClick={this._handleSankeyClick.bind(this)}>Sankey</a></li>
-                                    <li><a href="#">Tree Explorer</a></li>
                                 </ul>
                             </li>
                             <li className="has-submenu right">
-                                <a href="#">Queries</a>
+                                <a href="#"><i className="fa fa-bookmark-o"></i>Queries</a>
                                 <ul className="submenu">
-                                    <li><a onClick={createLink}>Share Query</a></li>
+                                    <li><a href="#" onClick={createLink}>Share Query</a></li>
                                     <li><a onClick={saveQuery}>Save</a></li>
                                     <li className="has-submenu right">
                                         <a onClick={() => {const str = prompt("Enter JSON config"); str && this.importState(str)}}>Load</a>
