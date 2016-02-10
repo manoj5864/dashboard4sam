@@ -217,23 +217,23 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
 
         function getImpactedPaths(targetNode) {
             var node = null;
-            var visitedNodes = new Set();
+            //var visitedNodes = new Set();
             var visitedNodesNamesSet = new Set();
             var visitedNodesNamesPath = new Set();
             var nodesQueue = [];
             nodesQueue.push(targetNode);
-            visitedNodes.add(targetNode);
+            //visitedNodes.add(targetNode);
 
             //Accessing all the sources
             while (nodesQueue.length !== 0) {
                 node = nodesQueue.pop();
                 node.targetLinks.forEach(function (link) {
-                    if (!visitedNodes.has(link.source)) {
-                        visitedNodes.add(link.source);
+                    //if (!visitedNodes.has(link.source)) {
+                    //    visitedNodes.add(link.source);
                         nodesQueue.push(link.source);
                         visitedNodesNamesSet.add(link.source._title);
                         visitedNodesNamesPath.add(link.source._title + " -> " + node._title);
-                    }
+                    //}
                 })
             }
 
@@ -242,12 +242,12 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
             while (nodesQueue.length !== 0) {
                 node = nodesQueue.pop()
                 node.sourceLinks.forEach(function (link) {
-                    if (!visitedNodes.has(link.target)) {
-                        visitedNodes.add(link.target)
+                    //if (!visitedNodes.has(link.target)) {
+                    //    visitedNodes.add(link.target)
                         nodesQueue.push(link.target)
                         visitedNodesNamesSet.add(link.target._title)
                         visitedNodesNamesPath.add(node._title + " -> " + link.target._title)
-                    }
+                    //}
                 })
             }
 
