@@ -143,7 +143,7 @@ export class QueryBuilder extends mixin(ContentPage, TLoggable) {
                     <div className="container">
                         <ul className="navigation-menu">
                             <li className="has-submenu">
-                                <a href="#"><i className="fa fa-plus"></i>Add</a>
+                                <a href="#"><i className="fa fa-plus"></i>Add Type</a>
                                 <ul className="submenu">
                                     {this._renderEntityList()}
                                 </ul>
