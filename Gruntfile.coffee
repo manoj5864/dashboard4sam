@@ -44,8 +44,9 @@ module.exports = (grunt) ->
         files: [
           # Bootstrap
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.min.css'], dest: './out/style/bootstrap.css'}
-          # Bootstrap Editable
-          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/css/bootstrap-editable.css'], dest: './out/style/bootstrap-editable.css'}
+# Font Awesome
+          {src: ['./bower_components/font-awesome-bower/css/font-awesome.css'], dest: './out/style/font-awesome.css'}
+          {expand: true, flatten: true, src: ['./bower_components/font-awesome-bower/fonts/**'], dest: './out/fonts/'}
           # Main Style
           {src : ['./src/style/*.css'], dest: './out/style/', flatten: true, expand: true}
           # Images
@@ -56,8 +57,9 @@ module.exports = (grunt) ->
           flatten: true
         files: [
           {src: ['./bower_components/bootstrap/dist/css/bootstrap.css'], dest: './test/style/bootstrap.css'}
-          # Bootstrap Editable
-          {src: ['./bower_components/x-editable/dist/bootstrap3-editable/css/bootstrap-editable.css'], dest: './test/style/bootstrap-editable.css'}
+          # Font Awesome
+          {src: ['./bower_components/font-awesome-bower/css/font-awesome.css'], dest: './test/style/font-awesome.css'}
+          {expand: true, flatten: true, src: ['./bower_components/font-awesome-bower/fonts/**'], dest: './test/fonts/'}
           # Main Style
           {src : ['./src/style/*.css'], dest: './test/style/', flatten: true, expand: true}
           # Images
