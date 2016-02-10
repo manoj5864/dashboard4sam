@@ -2,7 +2,6 @@ import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
 import {SankeyNode} from './SankeyNode'
 import {legend} from '../util/d3-legend.js'
-import {svgElementToImage} from '../../../util/svg/svgtoimage'
 
 
 export class SankeySurfaceManager extends mixin(null, TLoggable) {
@@ -356,10 +355,6 @@ export class SankeySurfaceManager extends mixin(null, TLoggable) {
                 d3.select('body').style("cursor", "auto");
             });
         this._svg.call(zoom).on("dblclick.zoom", null);
-    }
-
-    saveAs(filename, {type = 'svg'} = {}) {
-        svgElementToImage(this._svgElement, filename, {type: type});
     }
 
 }
