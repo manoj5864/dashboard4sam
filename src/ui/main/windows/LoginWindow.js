@@ -3,6 +3,7 @@ import {Button} from '../widgets/Button'
 import {Modal} from '../widgets/Modal'
 import {mixin} from '../../../util/mixin'
 import {TLoggable} from '../../../util/logging/TLoggable'
+import {SocioCortexApi} from '../../../service/api/SocioCortexApi'
 
 class LoginDetails {
 
@@ -13,6 +14,9 @@ export class LoginWindow extends React.Component {
     constructor() {
         super();
         this._awaitingPromises = [];
+        this.state = {
+            invalidLogin: false
+        }
     }
 
     async _getLoginDetails() {
@@ -25,7 +29,7 @@ export class LoginWindow extends React.Component {
         return promise;
     }
 
-    _handleLoginClick() {
+    async _handleLoginClick() {
         let username = this._usernameField.value;
         let password = this._passwordField.value;
 
@@ -37,7 +41,17 @@ export class LoginWindow extends React.Component {
             username: username,
             password: password
         };
-        this._awaitingPromises.forEach(it=>it.resolve(obj));
+
+        let cortex = new SocioCortexApi(username, password);
+        let res = await cortex.testLogin();
+
+        if (res) {
+            this._awaitingPromises.forEach(it=>it.resolve(obj));
+        } else {
+            this.setState({
+                invalidLogin: true
+            });
+        }
 
     }
 
@@ -65,8 +79,8 @@ export class LoginWindow extends React.Component {
                 <div className="panel-body" style={{'display': 'flex', 'justifyContent': 'center'}}>
                     <div className="login">
                         <Form>
-                            <FormControl placeholder="username" ref={c=>this._usernameField = c} />
-                            <FormControl type="password" placeholder="password" ref={c=>this._passwordField = c} />
+                            <FormControl style={this.state.invalidLogin ? {borderColor: 'red'} : {}} placeholder="username" ref={c=>this._usernameField = c} />
+                            <FormControl style={this.state.invalidLogin ? {borderColor: 'red'} : {}} type="password" placeholder="password" ref={c=>this._passwordField = c} />
                             <FormControl>
                                 <Button className="btn btn-block text-uppercase waves-effect waves-light" style={{'backgroundColor': '#224c70'}} onClick={this._handleLoginClick.bind(this)} text="Login"/>
                             </FormControl>

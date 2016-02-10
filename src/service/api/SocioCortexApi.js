@@ -8,7 +8,7 @@ class RequestHelper {
     static _buildRequest(req) {
         return new Promise((resolve, reject) => {
             request(req, (err, resp, body) => {
-                if (err) reject(err); else resolve(body);
+                if (err || (resp.statusCode > 400)) reject(err); else resolve(body);
             })
         })
     }
@@ -288,7 +288,7 @@ class SocioCortexUser {
 
 export class SocioCortexApi {
 
-    constructor(username, password, relative_url = "") {
+    constructor(username, password, relative_url = "http://vmmatthes21.informatik.tu-muenchen.de/api/v1") {
         this._username = username;
         this._password = password;
         this._relative_url = relative_url;
@@ -330,6 +330,16 @@ export class SocioCortexApi {
     getWorkspace(id) {
         if (!id.match(/[\w]+/)) { throw new Error('Invalid workspace id provided') }
         return new SocioCortexWorkspace(this, id)
+    }
+
+    async testLogin() {
+        try {
+            await this.getUser();
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
     }
 
     async getUser(id = null) {

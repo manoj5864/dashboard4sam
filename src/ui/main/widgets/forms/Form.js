@@ -15,13 +15,14 @@ export class FormControl extends React.Component {
     static get defaultProps() {
         return {
             className: '',
-            type: 'text'
+            type: 'text',
+            style: {}
         }
     }
 
     _buildInput() {
         return this.props.children ||  (
-            <input type={this.props.type} placeholder={this.placeholder} className="form-control" ref={(c) => this._inputControl = c} />
+            <input style={this.props.style} type={this.props.type} placeholder={this.placeholder} className="form-control" ref={(c) => this._inputControl = c} />
         )
     }
 
@@ -44,7 +45,7 @@ export class Form extends React.Component{
         super()
     }
 
-    static getDefaultProps() {
+    static get defaultProps() {
         return {
             className: ''
         }
