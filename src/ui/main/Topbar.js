@@ -25,6 +25,11 @@ export class Topbar extends  mixin(React.Component, TLoggable) {
         });
     }
 
+    _handleUserProfileClick() {
+        app.socioCortexManager.logout();
+        location.reload();
+    }
+
     render() {
         return (
             <div className="topbar">
@@ -32,7 +37,7 @@ export class Topbar extends  mixin(React.Component, TLoggable) {
                     <div className="logo">
                         <img src="images/logo.svg"/>
                     </div>
-                    <div className="profile" style={{'display': this.state.showUser}}>
+                    <div onClick={this._handleUserProfileClick.bind(this)} className="profile" style={{'display': this.state.showUser}}>
                         <span>{this.state.user.name}</span>
                         <img src={this.state.user.pictureUrl} className="img-circle" />
                     </div>

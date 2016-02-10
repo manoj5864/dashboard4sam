@@ -63,6 +63,10 @@ class SocioCortexManager extends mixin(null, TLoggable) {
         return this._loginData;
     }
 
+    logout() {
+        store.remove('login');
+    }
+
     async getUserDetails() {
         return (await this._getClient()).getUser();
     }
